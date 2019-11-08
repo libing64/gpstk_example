@@ -58,12 +58,86 @@ int main(void)
     Rinex3ObsHeader head; //RINEX header object
     rin >> head;
     rout.header = rin.header;
+
+    //add some print
+    cout << endl
+         << head.hsRunBy << "  :PGM / RUN BY / DATE";
+    cout << endl
+         << head.hsVersion << "  :RINEX VERSION / TYPE";
+    cout << endl
+         << head.hsComment << "   :COMMENT";
+    cout << endl
+         << head.hsMarkerName << "  :MARKER NAME";
+    cout << endl
+         << head.hsMarkerNumber << "  :MARKER NUMBER";
+    cout << endl
+         << head.hsMarkerType << "   :MARKER TYPE";
+    cout << endl
+         << head.hsObserver << "       :OBSERVER / AGENCY";
+    cout << endl
+         << head.hsReceiver << "       :REC # / TYPE / VERS";
+    cout << endl
+         << head.hsAntennaType << "     :ANT # / TYPE";
+    cout << endl
+         << head.hsAntennaPosition << "     :APPROX POSITION XYZ";
+    cout << endl
+         << head.hsAntennaDeltaHEN << "     :ANTENNA: DELTA H/E/N";
+    cout << endl
+         << head.hsAntennaDeltaXYZ << "     :ANTENNA: DELTA X/Y/Z";
+    cout << endl
+         << head.hsAntennaPhaseCtr << "     :ANTENNA: PHASECENTER";
+    cout << endl
+         << head.hsAntennaBsightXYZ << "     :ANTENNA: B.SIGHT XYZ";
+    cout << endl
+         << head.hsAntennaZeroDirAzi << "     :ANTENNA: ZERODIR AZI";
+    cout << endl
+         << head.hsAntennaZeroDirXYZ << "     :ANTENNA: ZERODIR XYZ";
+    cout << endl
+         << head.hsCenterOfMass << "     :CENTER OF MASS: XYZ";
+    cout << endl
+         << head.hsNumObs << "     :# / TYPES OF OBSERV";
+    cout << endl
+         << head.hsSystemNumObs << "     :SYS / # / OBS TYPES";
+    cout << endl
+         << head.hsWaveFact << "     :WAVELENGTH FACT L1/2";
+    cout << endl
+         << head.hsSigStrengthUnit << "     :SIGNAL STRENGTH UNIT";
+    cout << endl
+         << head.hsInterval << "     :INTERVAL";
+    cout << endl
+         << head.hsFirstTime << "     :TIME OF FIRST OBS";
+    cout << endl
+         << head.hsLastTime << "     :TIME OF LAST OBS";
+    cout << endl
+         << head.hsReceiverOffset << "     :RCV CLOCK OFFS APPL";
+    cout << endl
+         << head.hsSystemDCBSapplied << "     :SYS / DCBS APPLIED";
+    cout << endl
+         << head.hsSystemPCVSapplied << "     :SYS / PCVS APPLIED";
+    cout << endl
+         << head.hsSystemScaleFac << "     :SYS / SCALE FACTOR";
+    cout << endl
+         << head.hsSystemPhaseShift << "     :SYS / PHASE SHIFT";
+    cout << endl
+         << head.hsGlonassSlotFreqNo << "     :GLONASS SLOT / FRQ #";
+    cout << endl
+         << head.hsGlonassCodPhsBias << "     :GLONASS COD/PHS/BIS";
+    cout << endl
+         << head.hsLeapSeconds << "     :LEAP SECONDS";
+    cout << endl
+         << head.hsNumSats << "     :# OF SATELLITES";
+    cout << endl
+         << head.hsPrnObs << "     :PRN / # OF OBS";
+    cout << endl
+         << head.hsEoH << "     :END OF HEADER";
+
     rout << rout.header;
 
     // Loop over all data epochs
     Rinex3ObsData data; //RINEX data object
     while (rin >> data)
     {
+        cout << "time:  " <<  data.time << endl;
         rout << data;
     }
 
