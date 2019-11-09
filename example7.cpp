@@ -143,12 +143,15 @@ int main(void)
       // Please note that data was collected in year 2002, when the Sun
       // was very active
 
+
       // Create the input navigation file stream
    RinexNavStream rnavin("brdc0300.02n");
 
       // We need to read ionospheric parameters (Klobuchar model) from header
    rnavin >> rNavHeader;
 
+    rNavHeader.dump(cout);
+    cout << "line: " << __LINE__ << endl; 
       // Let's feed the ionospheric model (Klobuchar type) from data in the
       // Navigation file header
    ioModel.setModel(rNavHeader.ionAlpha, rNavHeader.ionBeta);
@@ -404,6 +407,7 @@ int main(void)
                                   bceStore,
                                   TypeID::C1 );
 
+    cout << "line: " << __LINE__ << endl;
       // Create an object to compute the single differences of prefit residuals
    DeltaOp delta;      // By default, it will work on code prefit residuals
 
@@ -421,59 +425,57 @@ int main(void)
 
       // Declare a new Kalman solver, already reconfigured for NEU system
    CodeKalmanSolver solverK12(newEq);
+   cout << "line: " << __LINE__ << endl;
+   ////////////////////////////////////////
 
-      ////////////////////////////////////////
+   //////// End of initialization phase  ////////
 
-      //////// End of initialization phase  ////////
+   //////// Processing phase ////////
 
-
-      //////// Processing phase ////////
-
-      // Loop over all data epochs
+   // Loop over all data epochs
    while(rin >> gOriginal)
    {
 
+       cout << "line: " << __LINE__ << endl;
+       // Let's output the time stamp (in seconds of day)
+       YDSTime ydstime(gOriginal.header.epoch);
 
-         // Let's output the time stamp (in seconds of day)
-      YDSTime ydstime(gOriginal.header.epoch);
+       cout << ydstime.sod << "  "; // Output field #1
 
-      cout << ydstime.sod << "  ";                       // Output field #1
+       //////////////////////////// CASE #1  ////////////////////////////
 
+       // This case is a common C1 + Least Mean Squares solver
+       // (LMS) processing
 
-   //////////////////////////// CASE #1  ////////////////////////////
+       // Let's make a working copy
+       gnssRinex gRin1(gOriginal);
 
-         // This case is a common C1 + Least Mean Squares solver
-         // (LMS) processing
+       try
+       {
 
-         // Let's make a working copy
-      gnssRinex gRin1(gOriginal);
+           // This is the line that will process all the GPS data
+           gRin1 >> myFilter >> model >> solver;
 
-      try
-      {
-
-            // This is the line that will process all the GPS data
-         gRin1 >> myFilter >> model >> solver;
-
-            // - First, a basic filter to screen out very bad observables
-            // - Second, apply a model to the observables (ionosphere,
-            //   troposphere, relativity, etc.)
-            // - Third, solve the equations using a simple Least-Mean-Squares
-            //   solver
+           // - First, a basic filter to screen out very bad observables
+           // - Second, apply a model to the observables (ionosphere,
+           //   troposphere, relativity, etc.)
+           // - Third, solve the equations using a simple Least-Mean-Squares
+           //   solver
       }
       catch(...)
       {
          cerr << "Case 1. Exception at epoch: " << gRin1.header.epoch << endl;
       }
 
-
-         // Get your results out of the solver object. In ECEF system
-         // by default
+      cout << "line: " << __LINE__ << endl;
+      // Get your results out of the solver object. In ECEF system
+      // by default
       Position solPos( (model.rxPos.X() + solver.solution[0]),
                        (model.rxPos.Y() + solver.solution[1]),
                        (model.rxPos.Z() + solver.solution[2]) );
-
-         // Let's change results to a North-East-Up (NEU) reference frame
-         // Compute the difference regarding the nominal position
+      cout << "line: " << __LINE__ << endl;
+      // Let's change results to a North-East-Up (NEU) reference frame
+      // Compute the difference regarding the nominal position
       Position diffPos;
       diffPos = solPos - nominalPos;
       double azimuth = nominalPos.azimuthGeodetic(solPos);
@@ -515,34 +517,32 @@ int main(void)
       cout << solverNEU.solution(0) << "  ";  // dLat - Output field #5
       cout << solverNEU.solution(1) << "  ";  // dLon - Output field #6
       cout << solverNEU.solution(2) << "  ";  // dH   - Output field #7
+      cout << "line: " << __LINE__ << endl;
 
+      // Quite easier with respect to CASE #1, isn't it?  ;-)
 
-         // Quite easier with respect to CASE #1, isn't it?  ;-)
+      // - "baseChange" object changes reference frame from ECEF to NEU
+      // - "solverNEU" is a simple Least-Mean-Squares solver, but
+      //    reconfigured to solve the dLat, dLon, dH, cdt (NEU) system
+      //    instead of the dx, dy, dz, cdt (ECEF) system
+      // - The other steps are exactly the same as case #1, and results
+      //   MUST match
+      // - If you want to see an even easier method to report the solution,
+      //   please see Case #3.
 
-         // - "baseChange" object changes reference frame from ECEF to NEU
-         // - "solverNEU" is a simple Least-Mean-Squares solver, but
-         //    reconfigured to solve the dLat, dLon, dH, cdt (NEU) system
-         //    instead of the dx, dy, dz, cdt (ECEF) system
-         // - The other steps are exactly the same as case #1, and results
-         //   MUST match
-         // - If you want to see an even easier method to report the solution,
-         //   please see Case #3.
+      // By the way, if you want to inspect what is inside the body of a
+      // given GNSS data structure, you may write something like:
+      //
+      //      gRin2.body.dump(cout, 1);
 
-         // By the way, if you want to inspect what is inside the body of a
-         // given GNSS data structure, you may write something like:
-         //
-         //      gRin2.body.dump(cout, 1);
+      ////////////////////////// END OF CASE #2  //////////////////////////
 
-   ////////////////////////// END OF CASE #2  //////////////////////////
+      //////////////////////////// CASE #3  ////////////////////////////
 
+      // In this case we process data using C1 + Weighted Least Mean Squares
+      // solver (WMS)
 
-
-   //////////////////////////// CASE #3  ////////////////////////////
-
-         // In this case we process data using C1 + Weighted Least Mean Squares
-         // solver (WMS)
-
-         // Let's make a working copy
+      // Let's make a working copy
       gnssRinex gRin3(gOriginal);
 
       try
@@ -605,16 +605,16 @@ int main(void)
 
    ////////////////////////// END OF CASE #4  //////////////////////////
 
+      cout << "line: " << __LINE__ << endl;
 
+      //////////////////////////// CASE #5  ////////////////////////////
 
-   //////////////////////////// CASE #5  ////////////////////////////
+      // This case is like the former, but now let's suppose that one of
+      // the unknowns is indeed known: In this case dH is constant an equal
+      // to zero (i.e.: the "rover" doesn't change altitude), and we assign
+      //  a high "weight" to this information.
 
-         // This case is like the former, but now let's suppose that one of
-         // the unknowns is indeed known: In this case dH is constant an equal
-         // to zero (i.e.: the "rover" doesn't change altitude), and we assign
-         //  a high "weight" to this information.
-
-         // Let's make a working copy
+      // Let's make a working copy
       gnssRinex gRin5(gOriginal);
 
       try
@@ -648,13 +648,13 @@ int main(void)
 
    ////////////////////////// END OF CASE #5  //////////////////////////
 
+      cout << "line: " << __LINE__ << endl;
 
+      //////////////////////////// CASE #6  ////////////////////////////
 
-   //////////////////////////// CASE #6  ////////////////////////////
+      // This case uses de PC combination plus a WMS solver
 
-         // This case uses de PC combination plus a WMS solver
-
-         // Let's make a working copy
+      // Let's make a working copy
       gnssRinex gRin6(gOriginal);
 
       try
@@ -681,13 +681,13 @@ int main(void)
 
    ////////////////////////// END OF CASE #6  //////////////////////////
 
+      cout << "line: " << __LINE__ << endl;
 
+      //////////////////////////// CASE #7  ////////////////////////////
 
-   //////////////////////////// CASE #7  ////////////////////////////
+      // This case uses the smoothed-PC combination plus WMS
 
-         // This case uses the smoothed-PC combination plus WMS
-
-         // Let's make a working copy
+      // Let's make a working copy
       gnssRinex gRin7(gOriginal);
 
       try
@@ -719,15 +719,15 @@ int main(void)
 
    ////////////////////////// END OF CASE #7  //////////////////////////
 
+      cout << "line: " << __LINE__ << endl;
 
+      //////////////////////////// CASE #8  ////////////////////////////
 
-   //////////////////////////// CASE #8  ////////////////////////////
+      // This case uses the smoothed-PC combination + WMS + information
+      // about dH (constant and equal to zero with a high confidence).
+      // It is a mix of the former case (#7) and case #5.
 
-         // This case uses the smoothed-PC combination + WMS + information
-         // about dH (constant and equal to zero with a high confidence).
-         // It is a mix of the former case (#7) and case #5.
-
-         // Let's make a working copy
+      // Let's make a working copy
       gnssRinex gRin8(gOriginal);
 
       try
@@ -760,14 +760,13 @@ int main(void)
 
    ////////////////////////// END OF CASE #8  //////////////////////////
 
+      cout << "line: " << __LINE__ << endl;
+      //////////////////////////// CASE #9  ////////////////////////////
 
+      // This case uses the smoothed-PC combination, exactly like case #7,
+      // but solves the equation system using a simple Kalman filter.
 
-   //////////////////////////// CASE #9  ////////////////////////////
-
-         // This case uses the smoothed-PC combination, exactly like case #7,
-         // but solves the equation system using a simple Kalman filter.
-
-         // Let's make a working copy
+      // Let's make a working copy
       gnssRinex gRin9(gOriginal);
 
       try
@@ -791,14 +790,13 @@ int main(void)
 
    ////////////////////////// END OF CASE #9  //////////////////////////
 
+      cout << "line: " << __LINE__ << endl;
 
+      //////////////////////////// CASE #10  ////////////////////////////
 
-   //////////////////////////// CASE #10  ////////////////////////////
+      // This is like cases #1 and #2, but using DGPS techniques instead.
 
-
-         // This is like cases #1 and #2, but using DGPS techniques instead.
-
-         // Let's make a working copy of rover data
+      // Let's make a working copy of rover data
       gnssRinex gRin10(gOriginal);
 
 
@@ -852,21 +850,19 @@ at epoch: " << gRef.header.epoch << endl;
 
    ////////////////////////// END OF CASE #10  //////////////////////////
 
+      cout << "line: " << __LINE__ << endl;
 
+      //////////////////////////// CASE #11  ////////////////////////////
 
-   //////////////////////////// CASE #11  ////////////////////////////
+      // This is like case #10 (DGPS), but now let's apply a WMS solver
+      // on data
 
+      // Let's make a working copy
+      gnssRinex gRin11(gOriginal);
 
-         // This is like case #10 (DGPS), but now let's apply a WMS solver
-         // on data
-
-         // Let's make a working copy
-         gnssRinex gRin11(gOriginal);
-
-
-         // Please note that data streams are already synchronized, and
-         // "delta" object may be reused with the same reference data
-         // obtained from Case #10.
+      // Please note that data streams are already synchronized, and
+      // "delta" object may be reused with the same reference data
+      // obtained from Case #10.
 
       try
       {
@@ -887,21 +883,18 @@ at epoch: " << gRef.header.epoch << endl;
 
    ////////////////////////// END OF CASE #11  //////////////////////////
 
+      cout << "line: " << __LINE__ << endl;
+      //////////////////////////// CASE #12  ////////////////////////////
 
+      // This is like case #11 (DGPS), but now let's apply a simple
+      // Kalman filter on data
 
-   //////////////////////////// CASE #12  ////////////////////////////
+      // Let's make a working copy
+      gnssRinex gRin12(gOriginal);
 
-
-         // This is like case #11 (DGPS), but now let's apply a simple
-         // Kalman filter on data
-
-         // Let's make a working copy
-         gnssRinex gRin12(gOriginal);
-
-
-         // Please note that data streams are already synchronized, and
-         // "delta" object may be reused with the same reference data
-         // obtained from Case #10.
+      // Please note that data streams are already synchronized, and
+      // "delta" object may be reused with the same reference data
+      // obtained from Case #10.
 
       try
       {
@@ -925,8 +918,8 @@ at epoch: " << gRef.header.epoch << endl;
 
    ////////////////////////// END OF CASE #12  //////////////////////////
 
-
-         // End of data processing for this epoch
+      cout << "line: " << __LINE__ << endl;
+      // End of data processing for this epoch
       cout << endl;
 
    }
