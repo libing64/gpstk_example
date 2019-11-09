@@ -163,28 +163,30 @@ void example5::spinUp()
       // From now on, some parts may look similar to 'example3.cpp' and
       // 'example4.cpp'
       // Activate failbit to enable exceptions
-   rObsFile.exceptions(ios::failbit);
+//    rObsFile.exceptions(ios::failbit);
 
+    cout << "line: " << __LINE__ << endl;
       // First, data RINEX reading object
-   try
-   {
-      rObsFile.open(dataFile.getValue()[0].c_str(), std::ios::in);
-   }
-   catch(...)
-   {
-      cerr << "Problem opening file " << dataFile.getValue()[0].c_str()
-           << endl;
-      cerr << "Maybe it doesn't exist or you don't have proper read "
-           << "permissions." << endl;
+//    try
+//    {
+      rObsFile.open(dataFile.getValue()[0], std::ios::in);
+      //rObsFile = Rinex3ObsStream(dataFile.getValue()[0].c_str());
+//    }
+//    catch(...)
+//    {
+//       cerr << "Problem opening file " << dataFile.getValue()[0].c_str()
+//            << endl;
+//       cerr << "Maybe it doesn't exist or you don't have proper read "
+//            << "permissions." << endl;
 
-      exit (-1);
-   }
-
-      // We need to read the header of the observations file
+//       exit (-1);
+//    }
+   cout << "line: " << __LINE__ << endl;
+   // We need to read the header of the observations file
    Rinex3ObsHeader roh;
    rObsFile >> roh;
-
-      // We need the index pointing to C1-type observations
+   cout << "line: " << __LINE__ << endl;
+   // We need the index pointing to C1-type observations
    try
    {
       indexC1 = roh.getObsIndex( "C1" );
@@ -194,24 +196,24 @@ void example5::spinUp()
       cerr << "The observation file doesn't have C1 pseudoranges." << endl;
       exit(1);
    }
+   cout << "line: " << __LINE__ << endl;
 
-
-      // Activate failbit to enable exceptions
-   rNavFile.exceptions(ios::failbit);
+   // Activate failbit to enable exceptions
+//    rNavFile.exceptions(ios::failbit);
 
       // Read nav file and store unique list of ephemerides
-   try
-   {
+//    try
+//    {
       rNavFile.open(navFile.getValue()[0].c_str(), std::ios::in);
-   }
-   catch(...)
-   {
-      cerr << "Problem opening file " << navFile.getValue()[0].c_str() << endl;
-      cerr << "Maybe it doesn't exist or you don't have proper read "
-           << "permissions." << endl;
+//    }
+//    catch(...)
+//    {
+//       cerr << "Problem opening file " << navFile.getValue()[0].c_str() << endl;
+//       cerr << "Maybe it doesn't exist or you don't have proper read "
+//            << "permissions." << endl;
 
-      exit (-1);
-   }
+//       exit (-1);
+//    }
 
       // We will need to read ionospheric parameters (Klobuchar model) from
       // the file header

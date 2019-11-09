@@ -144,3 +144,11 @@ S1: S1C, S1P, S1W, S1Y
                                     bcestore,
                                     tropModelPtr );
 ```
+
+
+## example5.cpp
+```
+ ./example5 -i ../bahr1620.04o -n ../bahr1620.04n
+```
+读取文件的地方总是会报错， 把catch try那里删掉就好了
+不知道这里报exception是啥意思？
