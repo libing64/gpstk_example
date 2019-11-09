@@ -2,11 +2,13 @@
 # 1.环境配置
 
 ## gpstk安装
+
 ```
 mkdir build
 cd build
 cmake .. -DBUILD_EXT=ON
 make
+sudo make install
 ```
 
 注意:在我电脑上总是遇到编译失败的情况， 后来把某个测试文件给注释掉就可以了
