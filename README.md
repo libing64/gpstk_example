@@ -258,4 +258,94 @@ gpstk surface plot
 "process such data applying a 'Precise Orbits Positioning' strategy.\n\n"
 ```
 
+```
+85800.00000 -0.00143 -0.00499 -0.00221 2.22699
+85830.00000 -0.00055 -0.00988 -0.03134 2.22596
+85860.00000 0.00566 -0.01188 -0.04113 2.22651
+85890.00000 0.00045 -0.01005 -0.02067 2.22661
+85920.00000 -0.00167 -0.01067 -0.02236 2.22557
+85950.00000 0.00147 -0.01118 -0.01652 2.22466
+85980.00000 0.01036 -0.00987 -0.01690 2.22450
+86010.00000 0.00245 -0.00378 -0.01040 2.22365
+86040.00000 0.00101 -0.00929 -0.01248 2.22249
+86070.00000 0.00391 -0.00855 -0.00417 2.22181
+86100.00000 0.00526 -0.00941 -0.01892 2.22047
+86130.00000 0.00896 -0.01308 0.00882 2.21954
+86160.00000 0.01072 -0.01710 -0.00525 2.21851
+86190.00000 0.00023 -0.01064 -0.00553 2.21612
+86220.00000 0.00752 -0.01103 0.01698 2.21565
+86250.00000 0.01035 -0.02318 0.01166 2.21482
+86280.00000 0.00819 -0.01150 0.01581 2.21356
+86310.00000 0.01652 -0.01485 0.00583 2.21372
+86340.00000 0.01647 -0.00995 0.02512 2.21342
+86370.00000 0.01247 -0.01339 0.01017 2.21314
+
+```
 ## example15.cpp
+
+```
+// An example of robust statistics found in lib/geomatics
+// compute Robust statistics. Also demonstrate the use
+// of random number generators.
+```
+
+生成随机数
+```
+libing@libing:~/source/gnss/gpstk_example/build$ ./example15
+
+Before perturbation: sample mean is               10.0586, 
+                     sample standard deviation is 1.99072
+
+Altering measurement 220 to take the value of 10000
+
+After perturbation:  sample mean is                20.0476, 
+                     sample standard deviation is 315.916
+
+Robust statistics:
+                     number    = 1000
+                     quartiles =   8.6755863   11.334482
+                     median    =   10.125088
+                     MAD       =   1.9174815
+
+Using robust stats:  sample mean is                10.0577, 
+                     sample standard deviation is 1.9915078
+
+```
+
+
+## example16.cpp  example17.cpp
+编译不过 先不管
+
+## example18.cpp
+这个例子不是真实GPS数据，
+模糊整周数问题？
+
+```
+// Example program Nro 18 for GPSTk
+//
+// This program shows how to use 'GeneralEquations' and 'GeneralConstraint' 
+// together with 'SolverGeneral' solve complex problems with Kalman filter. 
+//
+// To show the outline of the processing framework clearly, this example won't 
+// process some real GNSS data, but try to solver the following mathematical 
+// problem(the true value of x1 x2 and x3 is 1.0 2.0 and 4.0):
+//
+//    y1 = x1 + x2 +x3                               equ.(1)
+//    y2 = x2+x3                                     equ.(2)
+//
+// It's clear that the above equations is rand defect, and an additional 
+// constraint is added to solver the problem:
+//
+//    x3 = 4.0                                       equ.(3)
+//
+// Now, x1 x2 and x3 can be solved. For gnss data processing, we usually feed back
+// the fixed integer ambiguity to the solver to improve the solution, the following
+// show how to feed back some other constraint to the solver.
+//
+//    x1 = 1.0                                       equ.(4)
+//
+// Rank defect is the key problem for some PPP-RTK algorithms, and this framework
+// is designed to implement these algorithms gracefully. And more examples will 
+// added to show how to use these classes to do RTK and PPP-RTK in the near future.
+```
+
