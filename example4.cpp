@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 
       exit (-1);
     }
-
+    cout << "line: " << __LINE__ << endl;
       // Let's compute an useful constant (also found in "GNSSconstants.hpp")
    const double gamma = (L1_FREQ_GPS/L2_FREQ_GPS)*(L1_FREQ_GPS/L2_FREQ_GPS);
 
@@ -117,18 +117,21 @@ int main(int argc, char *argv[])
       Rinex3NavData rne;
       Rinex3NavHeader hdr;
 
-         // Let's read the header (may be skipped)
+      cout << "line: " << __LINE__ << endl;
+      // Let's read the header (may be skipped)
       rnffs >> hdr;
 
          // Storing the ephemeris in "bcstore"
       while (rnffs >> rne) bcestore.addEphemeris(rne);
 
-         // Setting the criteria for looking up ephemeris
+      cout << "line: " << __LINE__ << endl;
+      // Setting the criteria for looking up ephemeris
       bcestore.SearchNear();
 
          // If provided, open and store met file into a linked list.
       list<RinexMetData> rml;
-        
+
+      cout << "line: " << __LINE__ << endl;
       if( argc == 4 )
       {
 
@@ -153,42 +156,44 @@ int main(int argc, char *argv[])
          // Open and read the observation file one epoch at a time.
          // For each epoch, compute and print a position solution
       Rinex3ObsStream roffs(argv[1]);    // Open observations data file
-
-         // In order to throw exceptions, it is necessary to set the failbit
+      cout << "line: " << __LINE__ << endl;
+      // In order to throw exceptions, it is necessary to set the failbit
       roffs.exceptions(ios::failbit);
 
       Rinex3ObsHeader roh;
       Rinex3ObsData rod;
-
-         // Let's read the header
+      cout << "line: " << __LINE__ << endl;
+      // Let's read the header
       roffs >> roh;
 
-         // The following lines fetch the corresponding indexes for some
-         // observation types we are interested in. Given that old-style
-         // observation types are used, GPS is assumed.
+      roh.dump(cout);
+      cout << "line: " << __LINE__ << endl;
+      // The following lines fetch the corresponding indexes for some
+      // observation types we are interested in. Given that old-style
+      // observation types are used, GPS is assumed.
       int indexP1;
       try
       {
-         indexP1 = roh.getObsIndex( "P1" );
+         indexP1 = roh.getObsIndex( "C1W" );
       }
       catch(...)
       {
-         cerr << "The observation file doesn't have P1 pseudoranges." << endl;
-         exit(1);
+          cerr << "The observation file doesn't have C1W pseudoranges." << endl;
+          exit(1);
       }
-
+      cout << "line: " << __LINE__ << endl;
       int indexP2;
       try
       {
-         indexP2 = roh.getObsIndex( "P2" );
+         indexP2 = roh.getObsIndex( "C2W" );
       }
       catch(...)
       {
          indexP2 = -1;
       }
-
-         // Defining iterator "mi" for meteorological data linked list
-         // "rml", and set it to the beginning
+      cout << "line: " << __LINE__ << endl;
+      // Defining iterator "mi" for meteorological data linked list
+      // "rml", and set it to the beginning
       list<RinexMetData>::iterator mi=rml.begin();
 
          // Let's process all lines of observation data, one by one

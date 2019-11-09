@@ -50,13 +50,13 @@ using namespace gpstk;
    // ISO C++ forbids declaration of `main' with no type
 int main(int argc, char *argv[])
 {
+    //./ example3../ madr1480 .08o 
+    int myprn;
 
-   int myprn;
-
-   if( argc<2 )
-   {
-      cout << "Required argument is a RINEX obs file." << endl;
-      exit(-1);
+    if (argc < 2)
+    {
+        cout << "Required argument is a RINEX obs file." << endl;
+        exit(-1);
    }
 
    cout << "Name your PRN of interest (by number: 1 through 32): ";
@@ -86,12 +86,21 @@ int main(int argc, char *argv[])
          // Print RINEX header to terminal screen
          // -------------------------------------
       roh.dump(cout);
+      cout << "LINE: " << __LINE__ << endl;
 
-         // The following lines fetch the corresponding indexes for some
-         // observation types we are interested in
-      int indexP1( roh.getObsIndex( "P1" ) );
-      int indexP2( roh.getObsIndex( "P2" ) );
 
+
+
+      // The following lines fetch the corresponding indexes for some
+      // observation types we are interested in
+      //   int indexP1( roh.getObsIndex( "P1" ) );
+      //   int indexP2( roh.getObsIndex( "P2" ) );
+
+      int indexP1(roh.getObsIndex("C1W"));
+      int indexP2(roh.getObsIndex("C2W"));
+
+      cout << "indexP1: " << indexP1 << endl;
+      cout << "indexP2: " << indexP2 << endl;
          // Loop through epochs and process data for each.
          // ----------------------------------------------
       while( roffs >> roe )
@@ -102,13 +111,14 @@ int main(int argc, char *argv[])
 
          cout << civtime  << " ";
 
+        cout << "LINE: " << __LINE__ << endl;
             // Make a GPSTK SatID object for your PRN so you can search it
             // -----------------------------------------------------------
          SatID prn( myprn, SatID::systemGPS );
-
-            // Check to see if your PRN is in view at this epoch (ie.
-            // search for the PRN).
-            // -----------------------------------------------------------
+         cout << "LINE: " << __LINE__ << endl;
+         // Check to see if your PRN is in view at this epoch (ie.
+         // search for the PRN).
+         // -----------------------------------------------------------
          Rinex3ObsData::DataMap::iterator pointer = roe.obs.find(prn);
          if( pointer == roe.obs.end() )
          {
@@ -136,11 +146,11 @@ int main(int argc, char *argv[])
                // On the other hand it has the advantage that it doesn't need
                // a prior call to method 'Rinex3ObsHeader::getObsIndex()'
                // -----------------------------------------------------------
-            dataobj = roe.getObs(prn, "L1", roh);
+            dataobj = roe.getObs(prn, "L1C", roh);
             double L1 = dataobj.data;
-
-               // Compute multipath
-               // -----------------
+            cout << "LINE: " << __LINE__ << endl;
+            // Compute multipath
+            // -----------------
             double mu = P1 -L1*(C_MPS/L1_FREQ_GPS) -2*(P1 -P2)/(1-gamma);
 
                // The following line makes sure that you get a proper output

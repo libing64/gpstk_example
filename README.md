@@ -36,8 +36,8 @@ GPS时间 gps time
 ## 2.2文件输入输出 example2
 读取一个文件然后输出到另一个文件
 
-## 2.3 读取Rinex格式
-### Rinex3格式
+
+## 3.Rinex数据格式
 file types:
 
 1. Observation Data File
@@ -50,24 +50,24 @@ file types:
 2. data section
 
 
-### GPS observables
+## GPS observables
 1. time  时间
 2. psedu-range 伪距
 3. phase 相位
 4. Doppler 多普勒 -->(方向定义: 朝向卫星为正)
 
-### Rinex version features
+## Rinex version features
 1. satellite numbers 卫星个数
 
-### 文件头的记录顺序
+## 文件头的记录顺序
 顺序无关，但是有部分例外
 1. "RINEX VERSION / TYPE"放在最前面
 2. "WAVELENGTH FACT L1/2"如果存在，需要放在为单个卫星定义wavelength factor的记录之前
 3. "# OF SATELLITES"如果存在，后面需要紧跟"PRN / # OF OBS"
 
-### 缺失项
+## 缺失项
 
-### 数据段
+## 数据段
 ```
  08  5 27  0  0  0.0000000  0  8G 6G21G29G30G31G 3G24G16
  114882249.33248  89518626.24848  21861373.4054   21861376.2644   21861373.5894
@@ -97,5 +97,50 @@ file types:
 根据历元时刻+Navigation msg计算出来
 
 
-# 如果根据导航信息计算卫星位置？
+# 4.如果根据导航信息计算卫星位置？
 
+
+## example3.cpp
+```
+LINE: 89
+text 0:C1P is not stored in system G.
+location 0:/home/libing/source/gnss/GPSTk/core/lib/FileHandling/RINEX3/Rinex3ObsHeader.cpp:2476
+```
+这段错误码啥意思？是文件格式不对吗？
+
+## example4.cpp
+```
+./example4 ../bahr1620.04o ../bahr1620.04n ../bahr1620.04m
+The observation file doesn't have P1 pseudoranges.
+```
+为什么example4也不能运行？
+
+## Rinex2 到Rinex3的映射? 这么应该怎么取？
+```
+The difficulty is that the mapping from RIN2 to RIN3 is not one-to-one:
+
+C2: C2C, C2S, C2L, C2X
+P2: C2P, C2W, C2Y
+L2: L2C, L2S, L2L, L2X, L2P, L2W, L2Y
+S2: S2C, S2S, S2L, S2X, S2P, S2W, S2Y
+D2: D2C, D2S, D2L, D2X, D2P, D2W, D2Y
+
+C1: C1C
+P1: C1P, C1W, C1Y
+L1: L1C, L1P, L1W, L1Y
+D1: D1C, D1P, D1W, D1Y
+S1: S1C, S1P, S1W, S1Y
+```
+
+如果根据三个文件估计接收机的位置?
+```
+               // In order to compute positions we need the current time, the
+               // vector of visible satellites, the vector of corresponding
+               // ranges, the object containing satellite ephemerides, and a
+               // pointer to the tropospheric model to be applied
+            raimSolver.RAIMCompute( rod.time,
+                                    prnVec,
+                                    rangeVec,
+                                    bcestore,
+                                    tropModelPtr );
+```
