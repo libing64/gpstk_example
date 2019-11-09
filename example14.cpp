@@ -311,27 +311,27 @@ void example14::spinUp()
    {
 
          // Enable exceptions
-      confReader.exceptions(ios::failbit);
+    //   confReader.exceptions(ios::failbit);
 
-      try
-      {
+    //   try
+    //   {
 
             // Try to open the provided configuration file
          confReader.open( confFile.getValue()[0] );
 
-      }
-      catch(...)
-      {
+    //   }
+    //   catch(...)
+    //   {
 
-         cerr << "Problem opening file "
-              << confFile.getValue()[0]
-              << endl;
-         cerr << "Maybe it doesn't exist or you don't have proper "
-              << "read permissions." << endl;
+    //      cerr << "Problem opening file "
+    //           << confFile.getValue()[0]
+    //           << endl;
+    //      cerr << "Maybe it doesn't exist or you don't have proper "
+    //           << "read permissions." << endl;
 
-         exit (-1);
+    //      exit (-1);
 
-      }  // End of 'try-catch' block
+    //   }  // End of 'try-catch' block
 
    }
    else
@@ -487,36 +487,36 @@ void example14::process()
       RinexObsStream rin;
 
          // Enable exceptions
-      rin.exceptions(ios::failbit);
+    //   rin.exceptions(ios::failbit);
 
          // Try to open Rinex observations file
-      try
-      {
+    //   try
+    //   {
 
             // Open Rinex observations file in read-only mode
          rin.open( confReader("rinexObsFile", station), std::ios::in );
 
-      }
-      catch(...)
-      {
+    //   }
+    //   catch(...)
+    //   {
 
-         cerr << "Problem opening file '"
-              << confReader.getValue("rinexObsFile", station)
-              << "'." << endl;
+    //      cerr << "Problem opening file '"
+    //           << confReader.getValue("rinexObsFile", station)
+    //           << "'." << endl;
 
-         cerr << "Maybe it doesn't exist or you don't have "
-              << "proper read permissions."
-              << endl;
+    //      cerr << "Maybe it doesn't exist or you don't have "
+    //           << "proper read permissions."
+    //           << endl;
 
-         cerr << "Skipping receiver '" << station << "'."
-              << endl;
+    //      cerr << "Skipping receiver '" << station << "'."
+    //           << endl;
 
-            // Close current Rinex observation stream
-         rin.close();
+    //         // Close current Rinex observation stream
+    //      rin.close();
 
-         continue;
+    //      continue;
 
-      }  // End of 'try-catch' block
+    //   }  // End of 'try-catch' block
 
 
 

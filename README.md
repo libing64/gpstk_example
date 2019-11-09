@@ -238,3 +238,24 @@ Module of error vector: Average = 0.00971589 m    Std. dev. = 0.00580035 m
 
 ## example11.cpp
 添加GUI显示数据
+
+## example12.cpp
+自定义类型，可以自己扩展Rinex数据格式
+```
+  This is a example program to demonstrate some of the functionality of the
+  ObsID class. The intent is to use ObsID as a key in a STL map of gps data. ObsID
+  supports identifying the data in a manner that is similiar but can extend
+  the Rinex 3 specification.
+```
+
+## example13.cpp
+gpstk surface plot
+
+## example14.cpp
+精密轨道定位？
+```
+"\nThis program reads GPS receiver data from a configuration file and\n"
+"process such data applying a 'Precise Orbits Positioning' strategy.\n\n"
+```
+
+## example15.cpp
