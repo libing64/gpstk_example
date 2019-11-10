@@ -4,6 +4,9 @@ project(example)
 find_package(GPSTK)
 include_directories(${GPSTK_INCLUDE_DIRS})
 
+message(STATUS "gpstk include dir: ${GPSTK_INCLUDE_DIRS}")
+message(STATUS "gpstk library dir: ${GPSTK_LIBRARY_DIRS}")
+
 add_executable(example1 example1.cpp)
 target_link_libraries(example1 gpstk)
 
@@ -58,8 +61,8 @@ target_link_libraries(example18 gpstk)
 
 
 
-add_executable(navfilterex navfilterex.cpp)
-target_link_libraries(navfilterex gpstk)
+# add_executable(navfilterex navfilterex.cpp)
+# target_link_libraries(navfilterex gpstk)
 
 add_subdirectory(rinex)
 add_subdirectory(gps_time)
