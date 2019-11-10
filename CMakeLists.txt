@@ -63,3 +63,4 @@ target_link_libraries(navfilterex gpstk)
 
 add_subdirectory(rinex)
 add_subdirectory(gps_time)
+add_subdirectory(ephemeris)
