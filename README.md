@@ -42,10 +42,11 @@ GPS时间 gps time
 ## 3.Rinex数据格式
 file types:
 
-1. Observation Data File
-2. Navigation Data File
-3. Meteorological Data File
-4. GLONASS Navigation Message File
+1. Observation Data File 卫星观测数据,
+2. Navigation Data File 卫星导航数据(星历计算)
+3. Meteorological Data File(气象信息, 延时补偿?)
+4. GLONASS Navigation Message File(格罗纳斯导航信息)
+5. BDS Navigation Message File 北斗导航信息
 
 每个文件分成2部分
 1. header section
