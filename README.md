@@ -54,10 +54,11 @@ file types:
 
 
 ## GPS observables
-1. time  时间
-2. psedu-range 伪距
-3. phase 相位
-4. Doppler 多普勒 -->(方向定义: 朝向卫星为正)
+1. L1 L2 phase measurement on L1/L2
+2. C1 Pseudorange using C/A code on L1
+3. P1 P2: Pseudorange using P-code on L1/L2
+4. D1 D2: Doppler frequency on L1/L2
+5. T1 T2: transit Integrated Doppler on 150(T1) and 400MHz(T2)
 
 ## Rinex version features
 1. satellite numbers 卫星个数
