@@ -159,7 +159,8 @@ S1: S1C, S1P, S1W, S1Y
 example5跟example4比较接近？ 根据星历计算卫星位置？ 然后根据伪距计算接收机位置
 
 ## example6.cpp
-大气模型？
+示范一种最简单的处理GPS数据的方法
+
 
 ```
 ./example6
@@ -185,10 +186,22 @@ Exception at epoch: 2453167 00240000 0.000000000000000 GPS
 ```
 
 ## example7.cpp
-这个文件为何跑不完？
+示范了十几种处理GPS数据的方法 
+多种方法之间的区别在哪里？精度有差别吗？
 
 
 ## example8.cpp
+高精度定位PPP: Precise Point Positioning
+
+```
+This program shows how to use GNSS Data Structures (GDS) to obtain
+"Precise Point Positioning" (PPP).
+
+For details on the PPP algorithm please consult:
+
+    Kouba, J. and P. Heroux. "Precise Point Positioning using IGS Orbit
+       and Clock Products". GPS Solutions, vol 5, pp 2-28. October, 2001.
+```
 没看懂在干嘛？ 关键位置为何没运行？
 ```
 libing@libing:~/source/gnss/gpstk_example/build$ ./example8 
