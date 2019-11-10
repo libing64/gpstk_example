@@ -340,7 +340,10 @@ This program reads GPS receiver data from a configuration file and\n"
 
 ## example10.cpp
 
-使用卡尔曼滤波的方式求解方程？
+这个是example8的改进版， 参考paper "High accuracy positioning using carrier-phases with the open source GPSTk software".
+计算的精度比example8还要高.
+
+
 ```
 86220.0180  -0.0021  0.0043  0.0009  0.0439  0.0000  0.0000  0.0000  0.0000  7  2.3852  2.0629  1.1972  1.1253  1.7290  
 86250.0180  -0.0021  0.0044  0.0009  0.0439  0.0000  0.0000  0.0000  0.0000  7  2.3846  2.0626  1.1966  1.1258  1.7282  
@@ -357,22 +360,12 @@ Module of error vector: Average = 0.00971589 m    Std. dev. = 0.00580035 m
 
 ## example12.cpp
 自定义类型，可以自己扩展Rinex数据格式
-```
-  This is a example program to demonstrate some of the functionality of the
-  ObsID class. The intent is to use ObsID as a key in a STL map of gps data. ObsID
-  supports identifying the data in a manner that is similiar but can extend
-  the Rinex 3 specification.
-```
 
 ## example13.cpp
 gpstk surface plot
 
 ## example14.cpp
-精密轨道定位？
-```
-"\nThis program reads GPS receiver data from a configuration file and\n"
-"process such data applying a 'Precise Orbits Positioning' strategy.\n\n"
-```
+精确轨道定位
 
 ```
 85800.00000 -0.00143 -0.00499 -0.00221 2.22699
@@ -398,14 +391,8 @@ gpstk surface plot
 
 ```
 ## example15.cpp
+鲁棒统计以及随机数生成器
 
-```
-// An example of robust statistics found in lib/geomatics
-// compute Robust statistics. Also demonstrate the use
-// of random number generators.
-```
-
-生成随机数
 ```
 libing@libing:~/source/gnss/gpstk_example/build$ ./example15
 
