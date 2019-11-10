@@ -12,12 +12,6 @@ AGOMET9N0N4         JPS E_GGD           2.3 Feb,17,2004 p4b2REC # / TYPE / VERS
   2005     8    12     0     0    0.0000000     GPS         TIME OF FIRST OBS
 10402M004                                                   MARKER NUMBER
     13                                                      LEAP SECONDS
-MSWin2000|IAx86-PII|bcc32 5.0|MSWin95/98/NT/2000|486/DX+    COMMENT
-teqc  2002Mar14                         20050812 00:00:19UTCCOMMENT
-Forced Modulo Decimation to 30 seconds                      COMMENT
-IMoS GFileSrv 3.34  Lantmäteriet        11.08.2005          COMMENT
-Edited by GPSTK Rinex Editor ver 3.5 6/21/2007 on 2008/03/26COMMENT
-Edited by GPSTK Rinex Editor ver 3.5 6/21/2007 on 2008/03/29COMMENT
                                                             END OF HEADER
  05  8 12  0  0  0.0000000  0 10G03G08G15G18G19G21G22G26G27G29
   20577208.082 8 108134015.042 8  84260271.34546  20577207.498 6  20577210.550 6
