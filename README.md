@@ -8,6 +8,7 @@ GPSTK目前依然在快速更新，试了下最新的版本，不是很稳定，
 ```
 git clone git@github.com:SGL-UT/GPSTk.git
 cd GPSTK
+git checkout v2.10 -b master_v2.10
 mkdir build
 cd build
 cmake .. -DBUILD_EXT=ON
@@ -30,6 +31,7 @@ sudo make install
 
 ```
 mkdir gpstk_example
+cd gpstk_example
 touch example1.cpp CMakeLists.txt
 ```
 example1.cpp可以从GPSTK的例子中拷贝, CMakeLists.txt如下
