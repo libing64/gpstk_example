@@ -1,9 +1,13 @@
 
 # 1.环境配置
 
-## gpstk安装
+## 1.1 GPSTK编译和安装 (Ubuntu18.04)
+
+GPSTK目前依然在快速更新，试了下最新的版本，不是很稳定，而且example快被删光了，建议大家使用v2.11版本
 
 ```
+git clone git@github.com:SGL-UT/GPSTk.git
+cd GPSTK
 mkdir build
 cd build
 cmake .. -DBUILD_EXT=ON
@@ -11,10 +15,40 @@ make
 sudo make install
 ```
 
-注意:在我电脑上总是遇到编译失败的情况， 后来把某个测试文件给注释掉就可以了
-FFBinaryStream_T.cpp
+注意:在我电脑上总是遇到编译失败的情况， 一个test文件FFBinaryStream_T.cpp总是编译失败，在core/tests/FileHandling/CMakeLists.txt把这个文件注释掉就好了
 
-## 编译example
+```
+-add_executable(FFBinaryStream_T FFBinaryStream_T.cpp)
+-target_link_libraries(FFBinaryStream_T gpstk)
+-add_test(FileHandling_FFBinaryStream FFBinaryStream_T)
++# add_executable(FFBinaryStream_T FFBinaryStream_T.cpp)
++# target_link_libraries(FFBinaryStream_T gpstk)
++# add_test(FileHandling_FFBinaryStream FFBinaryStream_T)
+```
+
+## 1.2 创建依赖GPSTK的工程
+
+```
+mkdir gpstk_example
+touch example1.cpp CMakeLists.txt
+```
+example1.cpp可以从GPSTK的例子中拷贝, CMakeLists.txt如下
+
+```
+cmake_minimum_required(VERSION 3.1)
+project(example)
+
+find_package(GPSTK)
+include_directories(${GPSTK_INCLUDE_DIRS})
+
+message(STATUS "gpstk include dir: ${GPSTK_INCLUDE_DIRS}")
+message(STATUS "gpstk library dir: ${GPSTK_LIBRARY_DIRS}")
+
+add_executable(example1 example1.cpp)
+target_link_libraries(example1 gpstk)
+```
+
+编译代码
 ```
 mkdir build
 cd build
@@ -22,21 +56,119 @@ cmake ..
 make
 ```
 
-# 2.案例学习
+执行代码 
+```
+./example1
+Hello world!
+   The current civil time is 11/10/2019 14:36:07 UTC
+   The current year is 2019
+   The current day of year is 314
+   The current second of day is 52567.2
+   The current full GPS week is 2079
+   The current short GPS week is 31
+   The current day of GPS week is 0
+   The current second of GPS week is 52567.2
+   The current Modified Julian Date is 58797.608416953 UTC
 
-## 2.1时间转换 example1
-系统时间 system time
+```
 
-通用时间 common time
+example1.cpp 非常简单，几个时间之间的转换.
 
-民用时间 civil time
+* 系统时间 system time
+* 通用时间 common time
+* 民用时间 civil time
+* YDS时间 YDS time
+* GPS时间 gps time
 
-YDS时间 YDS time
 
-GPS时间 gps time
+# 2. GPS数据存储和访问
+GPSTK目前支持Rinex， Binex, sp3等格式，这里重点介绍下Rinex.
+Rinex全称是'Receiver Independent Exchange Format'.
 
-## 2.2文件输入输出 example2
-读取一个文件然后输出到另一个文件
+## 2.1 Rinex(2.0版本)文件类型
+Rinex文件一ASCII码的方式存储, 主要分为4类，
+* Observation Data File 观测数据文件
+* Navigation Data File 导航数据文件(用于星历计算)
+* Meteorological Data File 气象数据文件(用于时间补偿)
+* GLONASS Navigation Message File 格罗纳斯导航数据文件
+
+Rinex协议一直在更新扩展中， 格罗纳斯导航数据文件是1997年对Rinex格式进行扩展加上的
+到了Rinex3.x版本又被精简为观测文件，导航文件和气象文件，格罗纳斯和北斗的观测统一合并到观测文件.
+
+* Observation Data File 观测数据文件 
+* Navigation Data File 导航数据文件(用于星历计算)
+* Meteorological Data File 气象数据文件(用于时间补偿)
+
+## 2.2 文件命名格式
+
+文件命名格式 'ssssdddf.yyt'
+
+例如 onsa2240.08o
+
+* ssss 4字符基站名
+* ddd  一年的第ddd天
+* f    一天内的第f个文件
+* yy   年份
+* t    文件类型
+  * o 观测文件
+  * n 导航文件
+  * m 气象文件
+  * g 格罗纳斯导航文件
+
+## 2.3 文件头和数据
+Rinex文件分为文件头和数据两部分，文件头指明了基本信息，数据段是一条条的观测记录.
+
+每条观测数据有指明观测类型，主要以下几种
+* L1 L2 : 在L1/L2频段的相位测量
+* C1    : C/A码在L1频段的伪距测量
+* P1 P2 : P码在L1/L2频段的伪距测量
+* D1 D2 : 在L1/L2频段的多普勒频率
+* T1 T2 : 在150MHz(T1)和400MHz(T2)的传输集成多普勒
+
+
+
+# 3. 案例学习
+
+## 3.1 example1.cpp
+多种时间之间的转换
+```
+./example1
+Hello world!
+   The current civil time is 11/10/2019 14:36:07 UTC
+   The current year is 2019
+   The current day of year is 314
+   The current second of day is 52567.2
+   The current full GPS week is 2079
+   The current short GPS week is 31
+   The current day of GPS week is 0
+   The current second of GPS week is 52567.2
+   The current Modified Julian Date is 58797.608416953 UTC
+
+```
+
+## 2.2 example2.cpp
+Rinex文件读取和写入
+```
+    // Create the input file stream
+    Rinex3ObsStream rin("bahr1620.04o");
+
+    // Create the output file stream
+    Rinex3ObsStream rout("bahr1620.04o.new", ios::out | ios::trunc);
+
+    // Read the RINEX header
+    Rinex3ObsHeader head; //RINEX header object
+    rin >> head;
+    rout.header = rin.header;
+    rout << rout.header;
+
+    // Loop over all data epochs
+    Rinex3ObsData data; //RINEX data object
+    while (rin >> data)
+    {
+        rout << data;
+    }
+    return 0;
+```
 
 
 ## 3.Rinex数据格式
