@@ -111,11 +111,10 @@ int main(int argc, char *argv[])
 
          cout << civtime  << " ";
 
-        cout << "LINE: " << __LINE__ << endl;
             // Make a GPSTK SatID object for your PRN so you can search it
             // -----------------------------------------------------------
          SatID prn( myprn, SatID::systemGPS );
-         cout << "LINE: " << __LINE__ << endl;
+
          // Check to see if your PRN is in view at this epoch (ie.
          // search for the PRN).
          // -----------------------------------------------------------
@@ -148,7 +147,7 @@ int main(int argc, char *argv[])
                // -----------------------------------------------------------
             dataobj = roe.getObs(prn, "L1C", roh);
             double L1 = dataobj.data;
-            cout << "LINE: " << __LINE__ << endl;
+   
             // Compute multipath
             // -----------------
             double mu = P1 -L1*(C_MPS/L1_FREQ_GPS) -2*(P1 -P2)/(1-gamma);

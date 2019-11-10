@@ -151,7 +151,7 @@ int main(void)
    rnavin >> rNavHeader;
 
     rNavHeader.dump(cout);
-    cout << "line: " << __LINE__ << endl; 
+     
       // Let's feed the ionospheric model (Klobuchar type) from data in the
       // Navigation file header
    ioModel.setModel(rNavHeader.ionAlpha, rNavHeader.ionBeta);
@@ -407,7 +407,7 @@ int main(void)
                                   bceStore,
                                   TypeID::C1 );
 
-    cout << "line: " << __LINE__ << endl;
+    
       // Create an object to compute the single differences of prefit residuals
    DeltaOp delta;      // By default, it will work on code prefit residuals
 
@@ -425,7 +425,7 @@ int main(void)
 
       // Declare a new Kalman solver, already reconfigured for NEU system
    CodeKalmanSolver solverK12(newEq);
-   cout << "line: " << __LINE__ << endl;
+   
    ////////////////////////////////////////
 
    //////// End of initialization phase  ////////
@@ -436,7 +436,7 @@ int main(void)
    while(rin >> gOriginal)
    {
 
-       cout << "line: " << __LINE__ << endl;
+       
        // Let's output the time stamp (in seconds of day)
        YDSTime ydstime(gOriginal.header.epoch);
 
@@ -467,13 +467,13 @@ int main(void)
          cerr << "Case 1. Exception at epoch: " << gRin1.header.epoch << endl;
       }
 
-      cout << "line: " << __LINE__ << endl;
+      
       // Get your results out of the solver object. In ECEF system
       // by default
       Position solPos( (model.rxPos.X() + solver.solution[0]),
                        (model.rxPos.Y() + solver.solution[1]),
                        (model.rxPos.Z() + solver.solution[2]) );
-      cout << "line: " << __LINE__ << endl;
+      
       // Let's change results to a North-East-Up (NEU) reference frame
       // Compute the difference regarding the nominal position
       Position diffPos;
@@ -517,7 +517,7 @@ int main(void)
       cout << solverNEU.solution(0) << "  ";  // dLat - Output field #5
       cout << solverNEU.solution(1) << "  ";  // dLon - Output field #6
       cout << solverNEU.solution(2) << "  ";  // dH   - Output field #7
-      cout << "line: " << __LINE__ << endl;
+      
 
       // Quite easier with respect to CASE #1, isn't it?  ;-)
 
@@ -605,7 +605,7 @@ int main(void)
 
    ////////////////////////// END OF CASE #4  //////////////////////////
 
-      cout << "line: " << __LINE__ << endl;
+      
 
       //////////////////////////// CASE #5  ////////////////////////////
 
@@ -648,7 +648,7 @@ int main(void)
 
    ////////////////////////// END OF CASE #5  //////////////////////////
 
-      cout << "line: " << __LINE__ << endl;
+      
 
       //////////////////////////// CASE #6  ////////////////////////////
 
@@ -681,7 +681,7 @@ int main(void)
 
    ////////////////////////// END OF CASE #6  //////////////////////////
 
-      cout << "line: " << __LINE__ << endl;
+      
 
       //////////////////////////// CASE #7  ////////////////////////////
 
@@ -719,7 +719,7 @@ int main(void)
 
    ////////////////////////// END OF CASE #7  //////////////////////////
 
-      cout << "line: " << __LINE__ << endl;
+      
 
       //////////////////////////// CASE #8  ////////////////////////////
 
@@ -760,7 +760,7 @@ int main(void)
 
    ////////////////////////// END OF CASE #8  //////////////////////////
 
-      cout << "line: " << __LINE__ << endl;
+      
       //////////////////////////// CASE #9  ////////////////////////////
 
       // This case uses the smoothed-PC combination, exactly like case #7,
@@ -790,7 +790,7 @@ int main(void)
 
    ////////////////////////// END OF CASE #9  //////////////////////////
 
-      cout << "line: " << __LINE__ << endl;
+      
 
       //////////////////////////// CASE #10  ////////////////////////////
 
@@ -850,7 +850,7 @@ at epoch: " << gRef.header.epoch << endl;
 
    ////////////////////////// END OF CASE #10  //////////////////////////
 
-      cout << "line: " << __LINE__ << endl;
+      
 
       //////////////////////////// CASE #11  ////////////////////////////
 
@@ -883,7 +883,7 @@ at epoch: " << gRef.header.epoch << endl;
 
    ////////////////////////// END OF CASE #11  //////////////////////////
 
-      cout << "line: " << __LINE__ << endl;
+      
       //////////////////////////// CASE #12  ////////////////////////////
 
       // This is like case #11 (DGPS), but now let's apply a simple
@@ -918,7 +918,7 @@ at epoch: " << gRef.header.epoch << endl;
 
    ////////////////////////// END OF CASE #12  //////////////////////////
 
-      cout << "line: " << __LINE__ << endl;
+      
       // End of data processing for this epoch
       cout << endl;
 
