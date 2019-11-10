@@ -275,13 +275,23 @@ For details on the PPP algorithm please consult:
        and Clock Products". GPS Solutions, vol 5, pp 2-28. October, 2001.
 ```
 没看懂在干嘛？ 关键位置为何没运行？
+这个地方代码有bug, 读取Rinex文件总是失败，可以用example3读取试下 
 ```
-libing@libing:~/source/gnss/gpstk_example/build$ ./example8 
-line: 150
-line: 171
-line: 297
-Module of error vector: Average = 0 m    Std. dev. = 0 m
+./example3 ../onsa2240.05o 
+Name your PRN of interest (by number: 1 through 32): 3
+Reading ../onsa2240.05o.
+text 0:Non-text data in file.
+text 1:In record 0
+text 2:In file ../onsa2240.05o
+text 3:Near file line 17
+location 0:/home/xxx/source/gnss/GPSTk/core/lib/FileHandling/FFTextStream.cpp:163
+location 1:/home/xxx/source/gnss/GPSTk/core/lib/FileHandling/FFStream.cpp:225
+location 2:/home/xxx/source/gnss/GPSTk/core/lib/FileHandling/FFStream.hpp:214
+location 3:/home/xxx/source/gnss/GPSTk/core/lib/FileHandling/FFStream.hpp:214
 ```
+
+没找到问题， 但是把obs文件的那几行注释文件删掉就可以运行了
+
 
 正确运行的结果：
 ```
@@ -298,9 +308,11 @@ Module of error vector: Average = 0 m    Std. dev. = 0 m
 Module of error vector: Average = 0.038922 m    Std. dev. = 0.00789807 m
 
 ```
+PPP定位精度非常高, 平均误差0.038m，标准差0.0078m
+
 
 ## example9
-PPP高精度解算
+PPP高精度解算， 配置文件使用‘pppconfig.txt’
 ```
 This program reads GPS receiver data from a configuration file and\n"
 "process such data applying a 'Precise Point Positioning' strategy.\n\n"

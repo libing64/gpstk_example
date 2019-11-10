@@ -147,7 +147,7 @@ int main(void)
     // Create the input observation file stream
     RinexObsStream rin("onsa2240.05o");
 
-    cout << "line: " << __LINE__ << endl;
+
     // Declare a "SP3EphemerisStore" object to handle precise ephemeris
     SP3EphemerisStore SP3EphList;
 
@@ -168,7 +168,7 @@ int main(void)
     SP3EphList.loadFile("igs13355.sp3");
     SP3EphList.loadFile("igs13356.sp3");
 
-    cout << "line: " << __LINE__ << endl;
+
     // ONSA station nominal position
     Position nominalPos(3370658.5419, 711877.1496, 5349786.9542);
 
@@ -294,12 +294,12 @@ int main(void)
     // Use this variable to select between position printing or model printing
     bool printPosition(true); // By default, print position and associated
                               // parameters
-    cout << "line: " << __LINE__ << endl;
+
     // Loop over all data epochs
     while (rin >> gRin)
     {
 
-        cout << "line: " << __LINE__ << endl;
+    
         CommonTime time(gRin.header.epoch);
 
         // Compute the effect of solid, oceanic and pole tides
