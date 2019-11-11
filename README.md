@@ -8,7 +8,7 @@ GPSTK目前依然在快速更新，试了下最新的版本，不是很稳定，
 ```
 git clone git@github.com:SGL-UT/GPSTk.git
 cd GPSTK
-git checkout v2.10 -b master_v2.10
+git checkout v2.11 -b master_v2.11
 mkdir build
 cd build
 cmake .. -DBUILD_EXT=ON
