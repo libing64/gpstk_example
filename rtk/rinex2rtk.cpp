@@ -72,13 +72,22 @@ int main(int argc, char *argv[])
 
     // Open and read the observation file one epoch at a time.
     // For each epoch, compute and print a position solution
-    Rinex3ObsStream roffs(argv[3]); // Open observations data file
+    Rinex3ObsStream roffs(argv[1]); // Open observations data file
     Rinex3ObsHeader roh;
     Rinex3ObsData rod;
 
+    Rinex3ObsStream roffs_station(argv[3]); // Open observations data file
+    Rinex3ObsHeader roh_station;
+    Rinex3ObsData rod_station;
+
     // Let's read the header
+    cout << "Rinex Header" << endl;
     roffs >> roh;
     roh.dump(cout);
+
+    cout << "Rinex Header for station" << endl;
+    roffs_station >> roh_station;
+    roh_station.dump(cout);
 
     // The following lines fetch the corresponding indexes for some
     // observation types we are interested in. Given that old-style
@@ -86,14 +95,16 @@ int main(int argc, char *argv[])
     int indexP1 = roh.getObsIndex("C1C");
     int indexC1 = roh.getObsIndex("L1C");
 
+    int indexP1_station = roh_station.getObsIndex("C1C");
+    int indexC1_station = roh_station.getObsIndex("L1C");
+
     cout << "indexP1: " << indexP1 << endl;
     cout << "indexC1: " << indexC1 << endl;
 
 
     // Let's process all lines of observation data, one by one
-    while (roffs >> rod)
+    while (roffs >> rod  && roffs_station >> rod_station) 
     {
-
         if (rod.epochFlag == 0 || rod.epochFlag == 1) // Begin usable data
         {
             int cnt;
@@ -112,33 +123,32 @@ int main(int argc, char *argv[])
             // pseudoranges for the current epoch. They are correspondly fed
             // into "prnVec" and "rangeVec"; "obs" is a public attribute of
             // Rinex3ObsData to get the map of observations
+            double P1(0.0), C1(0.0);
+            double P1_station(0.0), C1_station(0.0);
+            RinexSatID satId;
+
             for (it = rod.obs.begin(); it != rod.obs.end(); it++)
             {
                 // The RINEX file may have P1 observations, but the current
                 // satellite may not have them.
-                double P1(0.0);
-                RinexSatID satId;
                 try
                 {
                     P1 = rod.getObs(it->first, indexP1).data;
-                    satId = it->first;
-                }
-                catch (...)
-                {
-                    continue;
-                }
-
-                double C1(0.0);
-                try
-                {
                     C1 = rod.getObs(it->first, indexC1).data;
+                    satId = it->first;
+
+
+                    P1_station = rod_station.getObs(it->first, indexP1_station).data;
+                    C1_station = rod_station.getObs(it->first, indexC1_station).data;
                 }
                 catch (...)
                 {
                     continue;
                 }
 
-                cout << "satId:" << satId << "   P1: " << P1 << "   C1:" << C1 << endl;
+
+                cout << "satId:  " << satId << "   P1: " << P1 << "   C1:" << C1 << endl;
+                cout << "station:" << satId << "   P1: " << P1_station << "   C1:" << C1_station << endl;
                 double ionocorr(0.0);
 
                 // Now, we include the current PRN number in the first part
