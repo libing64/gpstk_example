@@ -75,25 +75,18 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
         y(2 * i) = dd_c;
         y(2 * i + 1) = dd_p;
 
-        cout << "sat xvt1 : " << obs1.sat_xvt << endl;
-        cout << "sat xvt2 : " << obs2.sat_xvt << endl;
-        cout << "sat x1 : " << obs1.sat_xvt.x << endl;
-        cout << "sat x2 : " << obs2.sat_xvt.x << endl;
         Vector3d I1, I2;
         Triple sat_pos1 = obs1.sat_xvt.getPos();
         Triple sat_pos2 = obs2.sat_xvt.getPos();
-        cout << "sat_pos1 size: " << sat_pos1.size() << endl;
-        cout << "sat_pos2 size: " << sat_pos2.size() << endl;
-        cout << "line: " << __LINE__ << endl;
+
         for (int i = 0; i < 3; i++)
         {
             I1(i) = sat_pos1[i] - pos1(i);
             I2(i) = sat_pos2[i] - pos2(i);
         }
-        cout << "line: " << __LINE__ << endl;
         I1.normalize();
         I2.normalize();
-        cout << "line: " << __LINE__ << endl;
+        
         H.block(2 * i,     0, 1, 3) = (I1 - I2).transpose();
         H(2 * i, 3 + i) = L1_WAVELENGTH_GPS;
         H.block(2 * i + 1, 0, 1, 3) = (I1 - I2).transpose();
