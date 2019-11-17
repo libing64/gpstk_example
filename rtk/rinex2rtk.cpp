@@ -43,18 +43,30 @@ typedef struct
     double P2;
     double C1;
     double C2;
+    float  pos[3];
+    float  pos_station[3];
     Xvt sat_xvt;
     SatID prn;
 } rtk_obs_t;
 
 
-void rtk_solver(vector<rtk_obs_t>& rtk_obs)
+
+
+//(-3976219.5082, 3382372.5671, 3652512.9849).
+//(-3978242.4348, 3382841.1715, 3649902.7667)
+
+void rtk_solver(vector<rtk_obs_t> &rtk_obs)
 {
     int n = rtk_obs.size();
+    cout << "rtk solver: " << n << endl;
     MatrixXd H = MatrixXd(2*n - 2, n - 1 + 3);
     VectorXd y = VectorXd(2 * n - 2);
+    //position of two receivers
+    Vector3d pos1 = Vector3d(-3976219.5082, 3382372.5671, 3652512.9849);
+    Vector3d pos2 = Vector3d(-3978242.4348, 3382841.1715, 3649902.7667);
     for (int i = 0; i < (n - 1); i++)
     {
+        cout << "i: " << i << endl;
         rtk_obs_t obs1 = rtk_obs[i];
         rtk_obs_t obs2 = rtk_obs[i + 1];
         double dd_c = (obs1.C1 - obs1.C2) - (obs2.C1 - obs2.C2);//double difference
@@ -63,10 +75,36 @@ void rtk_solver(vector<rtk_obs_t>& rtk_obs)
         y(2 * i) = dd_c;
         y(2 * i + 1) = dd_p;
 
-        //H(2 * i, ) =
-        //H(2 * i + 1, ) = 
+        cout << "sat xvt1 : " << obs1.sat_xvt << endl;
+        cout << "sat xvt2 : " << obs2.sat_xvt << endl;
+        cout << "sat x1 : " << obs1.sat_xvt.x << endl;
+        cout << "sat x2 : " << obs2.sat_xvt.x << endl;
+        Vector3d I1, I2;
+        Triple sat_pos1 = obs1.sat_xvt.getPos();
+        Triple sat_pos2 = obs2.sat_xvt.getPos();
+        cout << "sat_pos1 size: " << sat_pos1.size() << endl;
+        cout << "sat_pos2 size: " << sat_pos2.size() << endl;
+        cout << "line: " << __LINE__ << endl;
+        for (int i = 0; i < 3; i++)
+        {
+            I1(i) = sat_pos1[i] - pos1(i);
+            I2(i) = sat_pos2[i] - pos2(i);
+        }
+        cout << "line: " << __LINE__ << endl;
+        I1.normalize();
+        I2.normalize();
+        cout << "line: " << __LINE__ << endl;
+        H.block(2 * i,     0, 1, 3) = (I1 - I2).transpose();
+        H(2 * i, 3 + i) = L1_WAVELENGTH_GPS;
+        H.block(2 * i + 1, 0, 1, 3) = (I1 - I2).transpose();
     }
+    cout << "H: " << H << endl;
+    cout << "y: " << y.transpose() << endl; 
+    VectorXd x = H.bdcSvd(ComputeThinU | ComputeThinV).solve(y);
+    cout << "x: " << x.transpose() << endl;
 
+    Vector3d baseline = pos2 - pos1;
+    cout << "baseline: " << baseline.transpose() << endl;
 }
 
 int main(int argc, char *argv[])
@@ -211,12 +249,11 @@ int main(int argc, char *argv[])
                 // The same is done for the vector of doubles holding the
                 // corrected ranges
                 rangeVec.push_back(P1 - ionocorr);
-
-                // WARNING: Please note that so far no further correction
-                // is done on data: Relativistic effects, tropospheric
-                // correction, instrumental delays, etc.
             }
+            rtk_solver(rtk_obs_q);
         }
+
+        
     }
 
     return 0;
