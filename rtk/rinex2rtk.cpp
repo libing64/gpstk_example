@@ -117,9 +117,11 @@ int main(int argc, char *argv[])
                 // The RINEX file may have P1 observations, but the current
                 // satellite may not have them.
                 double P1(0.0);
+                RinexSatID satId;
                 try
                 {
                     P1 = rod.getObs(it->first, indexP1).data;
+                    satId = it->first;
                 }
                 catch (...)
                 {
@@ -136,7 +138,7 @@ int main(int argc, char *argv[])
                     continue;
                 }
 
-                cout << "P1: " << P1 << "   C1:" << C1 << endl;
+                cout << "satId:" << satId << "   P1: " << P1 << "   C1:" << C1 << endl;
                 double ionocorr(0.0);
 
                 // Now, we include the current PRN number in the first part
