@@ -31,6 +31,8 @@
 #include "GNSSconstants.hpp"
 
 #include <Eigen/Eigen>
+#include <Eigen/Dense>
+#include <Eigen/Core>
 
 using namespace std;
 using namespace gpstk;
@@ -54,7 +56,7 @@ typedef struct
 
 //(-3976219.5082, 3382372.5671, 3652512.9849).
 //(-3978242.4348, 3382841.1715, 3649902.7667)
-
+//measurement [c1, p1, c2, p2, ...cn, pn] -> double difference
 void rtk_solver(vector<rtk_obs_t> &rtk_obs)
 {
     int n = rtk_obs.size();
@@ -64,6 +66,31 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
     //position of two receivers
     Vector3d pos1 = Vector3d(-3976219.5082, 3382372.5671, 3652512.9849);
     Vector3d pos2 = Vector3d(-3978242.4348, 3382841.1715, 3649902.7667);
+
+    Eigen::MatrixXd Q = MatrixXd(2*n, 2*n);//covariance matrix of raw gps measurement
+    Q.setZero();
+    for (int i = 0; i < n; i++)
+    {
+        Q(2 *i, 2 * i) = 1.0;
+        Q(2 *i + 1, 2 * i + 1) = 0.01;
+    }
+    cout << "line: " <<__LINE__ << endl;
+    //compute cov of difference
+    MatrixXd H_dd = MatrixXd(2 * n - 2, 2 * n);
+    for (int i = 0; i < (n - 1); i++)
+    {
+        H_dd(2 * i, 2 * i) = 1;
+        H_dd(2 * i, 2 * i + 2) = -1;
+
+        H_dd(2 * i + 1, 2 * i + 1) = 1;
+        H_dd(2 * i + 1, 2 * i + 3) = -1;
+    }
+    cout << "line: " << __LINE__ << endl;
+    MatrixXd Q_dd;
+    Q_dd = H_dd * Q * H_dd.transpose();
+    cout << "Q: " << Q << endl;
+    cout << "Q_dd: " << Q_dd << endl;
+    cout << "line: " << __LINE__ << endl;
     for (int i = 0; i < (n - 1); i++)
     {
         cout << "i: " << i << endl;
