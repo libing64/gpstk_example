@@ -91,6 +91,12 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
     cout << "Q: " << Q << endl;
     cout << "Q_dd: " << Q_dd << endl;
     cout << "line: " << __LINE__ << endl;
+    MatrixXd W_dd = Q_dd.inverse();
+    cout << "W_dd " << W_dd << endl;
+    //computer Qx and Qn
+
+
+
     for (int i = 0; i < (n - 1); i++)
     {
         cout << "i: " << i << endl;
@@ -120,11 +126,26 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
     }
     cout << "H: " << H << endl;
     cout << "y: " << y.transpose() << endl; 
-    VectorXd x = H.bdcSvd(ComputeThinU | ComputeThinV).solve(y);
+    VectorXd x1 = H.bdcSvd(ComputeThinU | ComputeThinV).solve(y);
+    cout << "x1: " << x1.transpose() << endl;
+    MatrixXd Ht = H.transpose();
+    VectorXd x = (Ht * W_dd * H).inverse() * Ht * W_dd * y;
     cout << "x: " << x.transpose() << endl;
 
     Vector3d baseline = pos2 - pos1;
     cout << "baseline: " << baseline.transpose() << endl;
+
+
+    //compute Qxn, Qx, Qn
+    MatrixXd hh = (Ht * W_dd * H).inverse() * Ht * W_dd;
+    MatrixXd Q_xn = hh * Q_dd * hh.transpose();
+    cout << "Q_xn: " << Q_xn << endl;
+    cout << "Q_xn size: " << Q_xn.rows() << "  " << Q_xn.cols() << endl;
+    cout << "n: " << n << endl;
+    MatrixXd Qx = Q_xn.block(0, 0, 3, 3);
+    MatrixXd Qn = Q_xn.block(3, 3,  n - 1, n - 1);
+    cout << "Qn: " << Qn << endl;
+
 }
 
 int main(int argc, char *argv[])
