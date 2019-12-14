@@ -34,6 +34,8 @@
 #include <Eigen/Dense>
 #include <Eigen/Core>
 
+#include "decorr.h"
+
 using namespace std;
 using namespace gpstk;
 using namespace Eigen;
@@ -52,6 +54,56 @@ typedef struct
 } rtk_obs_t;
 
 
+MatrixXd matrix_round(const MatrixXd m)
+{
+    MatrixXd mm = m;
+    for (int i = 0; i < mm.rows(); i++)
+    {
+        for (int j = 0; j < mm.cols(); j++)
+        {
+            mm(i, j) = round(mm(i, j));
+        }
+    }
+    return mm;
+}
+
+void decorrelation(const MatrixXd Qn, MatrixXd& Q_decorr, MatrixXd& ZT)
+{
+    MatrixXd Q_raw = Qn;
+    //MatrixXd Q = Qn;
+    //int n = Qn.rows();
+
+    int n = 6;
+    MatrixXd Q = MatrixXd::Zero(n, n);
+    Q <<  0.0977961, 0.0161137,  0.0468261, 0.0320695,  0.080857,  0.0376408,
+        0.0161137, 0.0208976,  0.0185378, 0.00290225, 0.0111409, 0.0247762,
+        0.0468261, 0.0185378,  0.0435412, 0.0227732,  0.0383208, 0.0382978,
+        0.0320695, 0.00290225, 0.0227732, 0.0161712,  0.0273471, 0.0154774,
+        0.080857,  0.0111409,  0.0383208, 0.0273471,  0.0672121, 0.0294637,
+        0.0376408, 0.0247762,  0.0382978, 0.0154774,  0.0294637, 0.0392536;
+
+    MatrixXd L = MatrixXd::Zero(n, n);
+    VectorXd D = VectorXd::Zero(n);
+    MatrixXd Z = MatrixXd::Identity(n, n);
+
+    ARLambda AR;
+    AR.factorize(Q, L, D);
+    AR.reduction(L, D, Z);
+
+    cout << "L: " << L << endl;
+    cout << "D: " << D.transpose() << endl;
+    MatrixXd QQ = Z.transpose() * Q * Z;
+    cout << "Z: " << Z << endl;
+    cout << "QQ: " << QQ << endl;
+}
+
+//整周模糊度求解
+void lambda_solver(MatrixXd Qn, VectorXd N)
+{
+
+    MatrixXd ZT, Q_decorr;
+    decorrelation(Qn, Q_decorr, ZT);
+}
 
 
 //(-3976219.5082, 3382372.5671, 3652512.9849).
@@ -135,17 +187,18 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
     Vector3d baseline = pos2 - pos1;
     cout << "baseline: " << baseline.transpose() << endl;
 
-
-    //compute Qxn, Qx, Qn
+    //compute Qxn, Qx, QnComputeThinV
     MatrixXd hh = (Ht * W_dd * H).inverse() * Ht * W_dd;
     MatrixXd Q_xn = hh * Q_dd * hh.transpose();
     cout << "Q_xn: " << Q_xn << endl;
     cout << "Q_xn size: " << Q_xn.rows() << "  " << Q_xn.cols() << endl;
     cout << "n: " << n << endl;
     MatrixXd Qx = Q_xn.block(0, 0, 3, 3);
+    cout << "Qx: " << Qx << endl;
     MatrixXd Qn = Q_xn.block(3, 3,  n - 1, n - 1);
     cout << "Qn: " << Qn << endl;
-
+    VectorXd N = x.segment(3, n - 1);
+    lambda_solver(Qn, N);
 }
 
 int main(int argc, char *argv[])
