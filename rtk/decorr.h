@@ -8,5 +8,5 @@ using namespace std;
 using namespace Eigen;
 
 void ldl_decomp(MatrixXd Q, MatrixXd &L, VectorXd &D);
-void decorr(MatrixXd &L, VectorXd &D, MatrixXd &Z);
+void decorr(MatrixXd &L, VectorXd &D, MatrixXd &ZT, MatrixXd& iZT);
 #endif

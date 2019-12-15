@@ -80,12 +80,12 @@ void permute(MatrixXd &L, VectorXd &D, int i, double delta, MatrixXd &Z)
     for (int k = 0; k < n; k++)
         sswap(Z(k, i), Z(k, i + 1));
 }
-void decorr(MatrixXd &L, VectorXd &D, MatrixXd &Z)
+void decorr(MatrixXd &L, VectorXd &D, MatrixXd &Zt, MatrixXd &iZt)
 {
     int n = L.rows();
     int ii = n - 2;
     bool sw = true;
-    MatrixXd iZt = MatrixXd::Identity(n, n);
+    iZt = MatrixXd::Identity(n, n);//inverse of Zt
     while (sw)
     {
         int i = n - 1; //loop for colomn from n - 1 to 0
@@ -110,46 +110,46 @@ void decorr(MatrixXd &L, VectorXd &D, MatrixXd &Z)
     }
 
     //cout << "iZt: " << iZt << endl;
-    Z = iZt.inverse().transpose();
-    for (int i = 0; i < Z.rows(); i++)
-        for (int j = 0; j < Z.cols(); j++)
-            Z(i, j) = round(Z(i, j));
+    Zt = iZt.inverse();
+    for (int i = 0; i < Zt.rows(); i++)
+        for (int j = 0; j < Zt.cols(); j++)
+            Zt(i, j) = round(Zt(i, j));
 }
 // Shows how to utilize MLAMBDA-Eigen
-int decorr_example()
-{
-    int n = 6;
-    MatrixXd Q = MatrixXd::Zero(n, n);
-    Q << 0.0977961, 0.0161137, 0.0468261, 0.0320695, 0.080857, 0.0376408,
-        0.0161137, 0.0208976, 0.0185378, 0.00290225, 0.0111409, 0.0247762,
-        0.0468261, 0.0185378, 0.0435412, 0.0227732, 0.0383208, 0.0382978,
-        0.0320695, 0.00290225, 0.0227732, 0.0161712, 0.0273471, 0.0154774,
-        0.080857, 0.0111409, 0.0383208, 0.0273471, 0.0672121, 0.0294637,
-        0.0376408, 0.0247762, 0.0382978, 0.0154774, 0.0294637, 0.0392536;
+// int decorr_example()
+// {
+//     int n = 6;
+//     MatrixXd Q = MatrixXd::Zero(n, n);
+//     Q << 0.0977961, 0.0161137, 0.0468261, 0.0320695, 0.080857, 0.0376408,
+//         0.0161137, 0.0208976, 0.0185378, 0.00290225, 0.0111409, 0.0247762,
+//         0.0468261, 0.0185378, 0.0435412, 0.0227732, 0.0383208, 0.0382978,
+//         0.0320695, 0.00290225, 0.0227732, 0.0161712, 0.0273471, 0.0154774,
+//         0.080857, 0.0111409, 0.0383208, 0.0273471, 0.0672121, 0.0294637,
+//         0.0376408, 0.0247762, 0.0382978, 0.0154774, 0.0294637, 0.0392536;
 
-    // int n = 3;
-    // MatrixXd Q = MatrixXd::Zero(n, n);
-    // Q << 6.288, 2.340, 0.544,
-    //     2.340, 6.292, 5.978,
-    //     0.544, 5.978, 6.290;
+//     // int n = 3;
+//     // MatrixXd Q = MatrixXd::Zero(n, n);
+//     // Q << 6.288, 2.340, 0.544,
+//     //     2.340, 6.292, 5.978,
+//     //     0.544, 5.978, 6.290;
 
-    // int n = 2;
-    // MatrixXd Q = MatrixXd::Zero(n, n);
-    // Q << 53.4, 38.4,
-    //      38.4, 28.0;
+//     // int n = 2;
+//     // MatrixXd Q = MatrixXd::Zero(n, n);
+//     // Q << 53.4, 38.4,
+//     //      38.4, 28.0;
 
-    MatrixXd L, Z;
-    VectorXd D;
-    ldl_decomp(Q, L, D);
+//     MatrixXd L, Z;
+//     VectorXd D;
+//     ldl_decomp(Q, L, D);
 
-    MatrixXd DD = MatrixXd::Zero(n, n);
-    for (int i = 0; i < n; i++)
-        DD(i, i) = D(i);
-    MatrixXd Q_ldlt = L.transpose() * DD * L;
+//     MatrixXd DD = MatrixXd::Zero(n, n);
+//     for (int i = 0; i < n; i++)
+//         DD(i, i) = D(i);
+//     MatrixXd Q_ldlt = L.transpose() * DD * L;
 
-    decorr(L, D, Z);
-    MatrixXd QQ = Z.transpose() * Q * Z;
-    cout << "Z: " << Z << endl;
-    cout << "QQ : " << QQ << endl;
-    return 0;
-}
+//     decorr(L, D, Z);
+//     MatrixXd QQ = Z.transpose() * Q * Z;
+//     cout << "Z: " << Z << endl;
+//     cout << "QQ : " << QQ << endl;
+//     return 0;
+// }

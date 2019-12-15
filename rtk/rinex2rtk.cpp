@@ -67,13 +67,13 @@ MatrixXd matrix_round(const MatrixXd m)
     return mm;
 }
 
-void decorrelation(const MatrixXd Qn, MatrixXd& Q_decorr, MatrixXd& ZT)
+void decorrelation(const MatrixXd Qn, MatrixXd& Q_decorr, MatrixXd& Zt, MatrixXd& iZt)
 {
     MatrixXd Q_raw = Qn;
     MatrixXd Q = Qn;
     int n = Qn.rows();
 
-    MatrixXd L, Z;
+    MatrixXd L;
     VectorXd D;
     ldl_decomp(Q, L, D);
 
@@ -82,19 +82,28 @@ void decorrelation(const MatrixXd Qn, MatrixXd& Q_decorr, MatrixXd& ZT)
         DD(i, i) = D(i);
     MatrixXd Q_ldlt = L.transpose() * DD * L;
 
-    decorr(L, D, Z);
-    ZT = Z.transpose();
-    Q_decorr = Z.transpose() * Q * Z;
+    decorr(L, D, Zt, iZt);
+    Q_decorr = Zt * Q * Zt.transpose();
     //cout << "ZT: " << ZT << endl;
     //cout << "Q_decorr : " << Q_decorr << endl;
 }
 
 //整周模糊度求解
-void lambda_solver(MatrixXd Qn, VectorXd N)
+void lambda_solver(MatrixXd Qa, VectorXd a, VectorXd& a_fixed)
 {
+    MatrixXd Zt, iZt, Q_z;
+    int n = Qa.rows();
+    decorrelation(Qa, Q_z, Zt, iZt);
+    VectorXd z = Zt * a;
+    cout << "a: " << a.transpose() << endl;
+    cout << "z: " << z.transpose() << endl;
 
-    MatrixXd ZT, Q_decorr;
-    decorrelation(Qn, Q_decorr, ZT);
+    VectorXd z_fixed = VectorXd::Zero(n);
+    for (int i = 0; i < n; i++) z_fixed(i) = round(z(i));
+
+    a_fixed = iZt * z_fixed;
+    cout << "z_fixed: " << z_fixed.transpose() << endl;
+    cout << "a_fix: " << a_fixed.transpose() << endl;
 }
 
 
@@ -190,7 +199,20 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
     MatrixXd Qn = Q_xn.block(3, 3,  n - 1, n - 1);
     cout << "Qn: " << Qn << endl;
     VectorXd N = x.segment(3, n - 1);
-    lambda_solver(Qn, N);
+    VectorXd N_fixed;
+    lambda_solver(Qn, N, N_fixed);
+
+
+    //solve (dx, dy, dz) with ambigity resolution being fixed
+    int m = x.rows();//length of x
+    cout << "n: " << n << endl;
+    cout << "m: " << m << endl;
+    VectorXd xx = VectorXd::Zero(m);
+    xx.segment(3, n-1) = N_fixed;
+    MatrixXd HH = H.block(0, 0, 2 * n - 2, 3);
+    VectorXd yy = y - H * xx;//after ambiguity being removed
+    VectorXd x2 = HH.bdcSvd(ComputeThinU | ComputeThinV).solve(yy);
+    cout << "x2: " << x2.transpose() << endl;
 }
 
 int main(int argc, char *argv[])
