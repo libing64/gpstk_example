@@ -73,14 +73,9 @@ void decorrelation(const MatrixXd Qn, MatrixXd& Q_decorr, MatrixXd& Zt, MatrixXd
     MatrixXd Q = Qn;
     int n = Qn.rows();
 
-    MatrixXd L;
-    VectorXd D;
+    MatrixXd L = MatrixXd::Zero(n, n);
+    VectorXd D = VectorXd::Zero(n);
     ldl_decomp(Q, L, D);
-
-    MatrixXd DD = MatrixXd::Zero(n, n);
-    for (int i = 0; i < n; i++)
-        DD(i, i) = D(i);
-    MatrixXd Q_ldlt = L.transpose() * DD * L;
 
     decorr(L, D, Zt, iZt);
     Q_decorr = Zt * Q * Zt.transpose();
@@ -163,7 +158,6 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
     //computer Qx and Qn
     for (int i = 0; i < (n - 1); i++)
     {
-        cout << "i: " << i << endl;
         rtk_obs_t obs1 = rtk_obs[i];
         rtk_obs_t obs2 = rtk_obs[i + 1];
         double dd_c = (obs1.C1 - obs1.C2) - (obs2.C1 - obs2.C2);//double difference
@@ -188,7 +182,7 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
         H(2 * i, 3 + i) = L1_WAVELENGTH_GPS;
         H.block(2 * i + 1, 0, 1, 3) = (I1 - I2).transpose();
     }
-    cout << "H: " << H << endl;
+    //cout << "H: " << H << endl;
     cout << "y: " << y.transpose() << endl; 
     //least square solver without weight
     // VectorXd x1 = H.bdcSvd(ComputeThinU | ComputeThinV).solve(y);
@@ -226,6 +220,7 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
 
     MatrixXd HHt = HH.transpose();
     VectorXd x2 = (HHt * W_dd * HH).inverse() * HHt * W_dd * yy;
+    cout << "yy: " << yy.transpose() << endl;
     cout << "x2: " << x2.transpose() << endl;
 }
 
