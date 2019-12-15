@@ -218,8 +218,8 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
     // VectorXd x1 = H.bdcSvd(ComputeThinU | ComputeThinV).solve(y);
     // cout << "x1: " << x1.transpose() << endl;
     MatrixXd Ht = H.transpose();
-    VectorXd x = (Ht * W_dd * H).inverse() * Ht * W_dd * y;
-
+    //VectorXd x = (Ht * W_dd * H).inverse() * Ht * W_dd * y;
+    VectorXd x = (Ht * W_dd * H).ldlt().solve(Ht * W_dd * y);
     VectorXd res = y - H * x;
     cout << "x: " << x.transpose() << endl;
     cout << "res " << res.transpose() << endl;
