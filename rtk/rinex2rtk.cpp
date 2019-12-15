@@ -106,30 +106,24 @@ void lambda_solver(MatrixXd Qa, VectorXd a, VectorXd& a_fixed)
     cout << "a_fix: " << a_fixed.transpose() << endl;
 }
 
-
-//(-3976219.5082, 3382372.5671, 3652512.9849).
-//(-3978242.4348, 3382841.1715, 3649902.7667)
-//measurement [c1, p1, c2, p2, ...cn, pn] -> double difference
-void rtk_solver(vector<rtk_obs_t> &rtk_obs)
+/* 
+prepare covariance matrix for double difference
+please note that that the measurements of difference satellite are uncorrelated, but dd will make them correlated
+n : n satellates
+*/
+void covariance_matrix(int n, MatrixXd &H_dd, MatrixXd &Q_dd, MatrixXd &W_dd)
 {
-    int n = rtk_obs.size();
-    cout << "rtk solver: " << n << endl;
-    MatrixXd H = MatrixXd(2*n - 2, n - 1 + 3);
-    VectorXd y = VectorXd(2 * n - 2);
-    //position of two receivers
-    Vector3d pos1 = Vector3d(-3976219.5082, 3382372.5671, 3652512.9849);
-    Vector3d pos2 = Vector3d(-3978242.4348, 3382841.1715, 3649902.7667);
-
-    Eigen::MatrixXd Q = MatrixXd(2*n, 2*n);//covariance matrix of raw gps measurement
-    Q.setZero();
+    const double Pcov = 2.0;
+    const double Ccov = 0.0001;
+    Eigen::MatrixXd Q = MatrixXd::Zero(2 * n, 2 * n); //covariance matrix of raw gps measurement
     for (int i = 0; i < n; i++)
     {
-        Q(2 *i, 2 * i) = 1.0;
-        Q(2 *i + 1, 2 * i + 1) = 0.01;
+        Q(2 * i, 2 * i) = Pcov;         //covariance of Pseudorange measurement
+        Q(2 * i + 1, 2 * i + 1) = Ccov; //covariance of carrier phase measurement
     }
-    cout << "line: " <<__LINE__ << endl;
+    cout << "line: " << __LINE__ << endl;
     //compute cov of difference
-    MatrixXd H_dd = MatrixXd(2 * n - 2, 2 * n);
+    H_dd = MatrixXd(2 * n - 2, 2 * n);
     for (int i = 0; i < (n - 1); i++)
     {
         H_dd(2 * i, 2 * i) = 1;
@@ -139,17 +133,34 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
         H_dd(2 * i + 1, 2 * i + 3) = -1;
     }
     cout << "line: " << __LINE__ << endl;
-    MatrixXd Q_dd;
     Q_dd = H_dd * Q * H_dd.transpose();
     cout << "Q: " << Q << endl;
     cout << "Q_dd: " << Q_dd << endl;
     cout << "line: " << __LINE__ << endl;
-    MatrixXd W_dd = Q_dd.inverse();
+    W_dd = Q_dd.inverse();
     cout << "W_dd " << W_dd << endl;
+}
+
+//(-3976219.5082, 3382372.5671, 3652512.9849).
+//(-3978242.4348, 3382841.1715, 3649902.7667)
+//measurement [c1, p1, c2, p2, ...cn, pn] -> double difference
+void rtk_solver(vector<rtk_obs_t> &rtk_obs)
+{
+    int n = rtk_obs.size();
+    cout << "rtk solver: " << n << endl;
+    int rows = 2 * n - 2;//all the measurements converted to double difference
+    int cols = n - 1 + 3;//all the variables to be solved, dx, dy, dz and (n-1) ambiguity resolution
+    MatrixXd H = MatrixXd(rows, cols);
+    VectorXd y = VectorXd(rows);
+
+    MatrixXd H_dd, W_dd, Q_dd;
+    covariance_matrix(n, H_dd, Q_dd, W_dd);
+    //position of two receivers
+    Vector3d pos1 = Vector3d(-3976219.5082, 3382372.5671, 3652512.9849);
+    Vector3d pos2 = Vector3d(-3978242.4348, 3382841.1715, 3649902.7667);
+
+  
     //computer Qx and Qn
-
-
-
     for (int i = 0; i < (n - 1); i++)
     {
         cout << "i: " << i << endl;
@@ -191,13 +202,13 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
     //compute Qxn, Qx, QnComputeThinV
     MatrixXd hh = (Ht * W_dd * H).inverse() * Ht * W_dd;
     MatrixXd Q_xn = hh * Q_dd * hh.transpose();
-    cout << "Q_xn: " << Q_xn << endl;
-    cout << "Q_xn size: " << Q_xn.rows() << "  " << Q_xn.cols() << endl;
-    cout << "n: " << n << endl;
+    //cout << "Q_xn: " << Q_xn << endl;
+    //cout << "Q_xn size: " << Q_xn.rows() << "  " << Q_xn.cols() << endl;
+    //cout << "n: " << n << endl;
     MatrixXd Qx = Q_xn.block(0, 0, 3, 3);
-    cout << "Qx: " << Qx << endl;
+    //cout << "Qx: " << Qx << endl;
     MatrixXd Qn = Q_xn.block(3, 3,  n - 1, n - 1);
-    cout << "Qn: " << Qn << endl;
+    //cout << "Qn: " << Qn << endl;
     VectorXd N = x.segment(3, n - 1);
     VectorXd N_fixed;
     lambda_solver(Qn, N, N_fixed);
@@ -205,8 +216,8 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
 
     //solve (dx, dy, dz) with ambigity resolution being fixed
     int m = x.rows();//length of x
-    cout << "n: " << n << endl;
-    cout << "m: " << m << endl;
+    //cout << "n: " << n << endl;
+    //cout << "m: " << m << endl;
     VectorXd xx = VectorXd::Zero(m);
     xx.segment(3, n-1) = N_fixed;
     MatrixXd HH = H.block(0, 0, 2 * n - 2, 3);
