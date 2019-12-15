@@ -114,14 +114,14 @@ n : n satellates
 void covariance_matrix(int n, MatrixXd &H_dd, MatrixXd &Q_dd, MatrixXd &W_dd)
 {
     const double Pcov = 2.0;
-    const double Ccov = 0.0001;
+    const double Ccov = 0.001;
     Eigen::MatrixXd Q = MatrixXd::Zero(2 * n, 2 * n); //covariance matrix of raw gps measurement
     for (int i = 0; i < n; i++)
     {
         Q(2 * i, 2 * i) = Pcov;         //covariance of Pseudorange measurement
         Q(2 * i + 1, 2 * i + 1) = Ccov; //covariance of carrier phase measurement
     }
-    cout << "line: " << __LINE__ << endl;
+    //cout << "line: " << __LINE__ << endl;
     //compute cov of difference
     H_dd = MatrixXd(2 * n - 2, 2 * n);
     for (int i = 0; i < (n - 1); i++)
@@ -132,13 +132,13 @@ void covariance_matrix(int n, MatrixXd &H_dd, MatrixXd &Q_dd, MatrixXd &W_dd)
         H_dd(2 * i + 1, 2 * i + 1) = 1;
         H_dd(2 * i + 1, 2 * i + 3) = -1;
     }
-    cout << "line: " << __LINE__ << endl;
+    //cout << "line: " << __LINE__ << endl;
     Q_dd = H_dd * Q * H_dd.transpose();
-    cout << "Q: " << Q << endl;
-    cout << "Q_dd: " << Q_dd << endl;
-    cout << "line: " << __LINE__ << endl;
+    //cout << "Q: " << Q << endl;
+    //cout << "Q_dd: " << Q_dd << endl;
+    //cout << "line: " << __LINE__ << endl;
     W_dd = Q_dd.inverse();
-    cout << "W_dd " << W_dd << endl;
+    //cout << "W_dd " << W_dd << endl;
 }
 
 //(-3976219.5082, 3382372.5671, 3652512.9849).
@@ -150,8 +150,8 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
     cout << "rtk solver: " << n << endl;
     int rows = 2 * n - 2;//all the measurements converted to double difference
     int cols = n - 1 + 3;//all the variables to be solved, dx, dy, dz and (n-1) ambiguity resolution
-    MatrixXd H = MatrixXd(rows, cols);
-    VectorXd y = VectorXd(rows);
+    MatrixXd H = MatrixXd::Zero(rows, cols);
+    VectorXd y = VectorXd::Zero(rows);
 
     MatrixXd H_dd, W_dd, Q_dd;
     covariance_matrix(n, H_dd, Q_dd, W_dd);
@@ -196,7 +196,7 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
     VectorXd x = (Ht * W_dd * H).inverse() * Ht * W_dd * y;
     cout << "x: " << x.transpose() << endl;
 
-    Vector3d baseline = pos2 - pos1;
+    Vector3d baseline = pos1 - pos2;
     cout << "baseline: " << baseline.transpose() << endl;
 
     //compute Qxn, Qx, QnComputeThinV
@@ -300,9 +300,9 @@ int main(int argc, char *argv[])
     {
         if (rod.epochFlag == 0 || rod.epochFlag == 1) // Begin usable data
         {
-            int cnt;
-            cin >> cnt;
-            cout << "cnt: " << cnt << endl;
+            //int cnt;
+            // cin >> cnt;
+            // cout << "cnt: " << cnt << endl;
             vector<SatID> prnVec;
             vector<double> rangeVec;
             vector<rtk_obs_t> rtk_obs_q;
