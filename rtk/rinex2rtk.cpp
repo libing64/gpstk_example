@@ -151,8 +151,8 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
     MatrixXd H_dd, W_dd, Q_dd;
     covariance_matrix(n, H_dd, Q_dd, W_dd);
     //position of two receivers
-    Vector3d pos1 = Vector3d(-3976219.5082, 3382372.5671, 3652512.9849);
-    Vector3d pos2 = Vector3d(-3978242.4348, 3382841.1715, 3649902.7667);
+    Vector3d pos1 = Vector3d(-3976219.5082, 3382372.5671, 3652512.9849);//station
+    Vector3d pos2 = Vector3d(-3978242.4348, 3382841.1715, 3649902.7667);//receiver
 
   
     //computer Qx and Qn
@@ -173,7 +173,7 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
         for (int i = 0; i < 3; i++)
         {
             I1(i) = sat_pos1[i] - pos1(i);
-            I2(i) = sat_pos2[i] - pos2(i);
+            I2(i) = sat_pos2[i] - pos1(i);
         }
         I1.normalize();
         I2.normalize();
