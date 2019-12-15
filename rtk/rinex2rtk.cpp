@@ -82,7 +82,7 @@ void decorrelation(const MatrixXd Qn, MatrixXd& Q_decorr, MatrixXd& Zt, MatrixXd
 
     decorr(L, D, Zt, iZt);
     Q_decorr = Zt * Q * Zt.transpose();
-    //cout << "ZT: " << ZT << endl;
+    cout << "Zt: " << Zt << endl;
     //cout << "Q_decorr : " << Q_decorr << endl;
 }
 
@@ -110,7 +110,7 @@ void lambda_search(MatrixXd Qz, VectorXd z, VectorXd& z_fixed)
         }
     }
     cout << "offset: " << offset.transpose() << endl;
-    z_fixed = z + offset;
+    z_fixed = z_fixed + offset;
 }
 
 //整周模糊度求解
@@ -148,7 +148,7 @@ void covariance_matrix(int n, MatrixXd &H_dd, MatrixXd &Q_dd, MatrixXd &W_dd)
     }
     //cout << "line: " << __LINE__ << endl;
     //compute cov of difference
-    H_dd = MatrixXd(2 * n - 2, 2 * n);
+    H_dd = MatrixXd::Zero(2 * n - 2, 2 * n);
     for (int i = 0; i < (n - 1); i++)
     {
         H_dd(2 * i, 2 * i) = 1;
@@ -227,13 +227,17 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
     //compute Qxn, Qx, QnComputeThinV
     MatrixXd hh = (Ht * W_dd * H).inverse() * Ht * W_dd;
     MatrixXd Q_xn = hh * Q_dd * hh.transpose();
-    //cout << "Q_xn: " << Q_xn << endl;
+
+    cout << "W_dd: " << W_dd << endl;
+    cout << "hh: " << hh << endl;
+    cout << "Q_dd: " << Q_dd << endl;
+    cout << "Q_xn: " << Q_xn << endl;
     //cout << "Q_xn size: " << Q_xn.rows() << "  " << Q_xn.cols() << endl;
     //cout << "n: " << n << endl;
     MatrixXd Qx = Q_xn.block(0, 0, 3, 3);
     //cout << "Qx: " << Qx << endl;
     MatrixXd Qn = Q_xn.block(3, 3,  n - 1, n - 1);
-    //cout << "Qn: " << Qn << endl;
+    cout << "Qn: " << Qn << endl;
     VectorXd N = x.segment(3, n - 1);
     VectorXd N_fixed;
     lambda_solver(Qn, N, N_fixed);
@@ -363,25 +367,26 @@ int main(int argc, char *argv[])
                     {
                         cout << "sat " << it->first << "  is not observed in station" << endl;
                         continue;
+                    } else 
+                    {
+                        P1_station = rod_station.getObs(it->first, indexP1_station).data;
+                        C1_station = rod_station.getObs(it->first, indexC1_station).data;
+
+                        //compute sat pos
+                        Xvt sat_xvt = bcestore.getXvt(prn, rod.time);
+                        // cout << "satellite pos:" << sat_xvt.x << endl;
+                        // cout << "satellite vel:" << sat_xvt.v << endl;
+                        // cout << "satellite clock bias: " << sat_xvt.clkbias << endl;
+                        // cout << "satellite clock drift: " << sat_xvt.clkdrift << endl;
+
+                        rtk_obs.P1 = P1;
+                        rtk_obs.P2 = P1_station;
+                        rtk_obs.C1 = C1;
+                        rtk_obs.C2 = C1_station;
+                        rtk_obs.sat_xvt = sat_xvt;
+                        rtk_obs.prn = prn;
+                        rtk_obs_q.push_back(rtk_obs);
                     }
-                    P1_station = rod_station.getObs(it->first, indexP1_station).data;
-                    C1_station = rod_station.getObs(it->first, indexC1_station).data;
-
-                    //compute sat pos
-                    Xvt sat_xvt = bcestore.getXvt(prn, rod.time);
-                    // cout << "satellite pos:" << sat_xvt.x << endl;
-                    // cout << "satellite vel:" << sat_xvt.v << endl;
-                    // cout << "satellite clock bias: " << sat_xvt.clkbias << endl;
-                    // cout << "satellite clock drift: " << sat_xvt.clkdrift << endl;
-
-
-                    rtk_obs.P1 = P1;
-                    rtk_obs.P2 = P1_station;
-                    rtk_obs.C1 = C1;
-                    rtk_obs.C2 = C1_station;
-                    rtk_obs.sat_xvt = sat_xvt;
-                    rtk_obs.prn = prn;
-                    rtk_obs_q.push_back(rtk_obs);
                 }
                 catch (...)
                 {
