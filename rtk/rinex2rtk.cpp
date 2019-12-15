@@ -190,8 +190,9 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
     }
     cout << "H: " << H << endl;
     cout << "y: " << y.transpose() << endl; 
-    VectorXd x1 = H.bdcSvd(ComputeThinU | ComputeThinV).solve(y);
-    cout << "x1: " << x1.transpose() << endl;
+    //least square solver without weight
+    // VectorXd x1 = H.bdcSvd(ComputeThinU | ComputeThinV).solve(y);
+    // cout << "x1: " << x1.transpose() << endl;
     MatrixXd Ht = H.transpose();
     VectorXd x = (Ht * W_dd * H).inverse() * Ht * W_dd * y;
     cout << "x: " << x.transpose() << endl;
@@ -222,7 +223,9 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
     xx.segment(3, n-1) = N_fixed;
     MatrixXd HH = H.block(0, 0, 2 * n - 2, 3);
     VectorXd yy = y - H * xx;//after ambiguity being removed
-    VectorXd x2 = HH.bdcSvd(ComputeThinU | ComputeThinV).solve(yy);
+
+    MatrixXd HHt = HH.transpose();
+    VectorXd x2 = (HHt * W_dd * HH).inverse() * HHt * W_dd * yy;
     cout << "x2: " << x2.transpose() << endl;
 }
 
