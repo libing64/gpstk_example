@@ -139,7 +139,7 @@ n : n satellates
 void covariance_matrix(int n, MatrixXd &H_dd, MatrixXd &Q_dd, MatrixXd &W_dd)
 {
     const double Pcov = 2.0;
-    const double Ccov = 0.001;
+    const double Ccov = 0.01;
     Eigen::MatrixXd Q = MatrixXd::Zero(2 * n, 2 * n); //covariance matrix of raw gps measurement
     for (int i = 0; i < n; i++)
     {
@@ -219,8 +219,15 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
     // cout << "x1: " << x1.transpose() << endl;
     MatrixXd Ht = H.transpose();
     VectorXd x = (Ht * W_dd * H).inverse() * Ht * W_dd * y;
-    cout << "x: " << x.transpose() << endl;
 
+    VectorXd res = y - H * x;
+    cout << "x: " << x.transpose() << endl;
+    cout << "res " << res.transpose() << endl;
+
+    if (res.norm() / (2 * n) > 10.0)
+    {
+        cout << "lambda solve failed!!!!!  " << endl; 
+    }
     Vector3d baseline = pos1 - pos2;
     cout << "baseline: " << baseline.transpose() << endl;
 
@@ -327,6 +334,7 @@ int main(int argc, char *argv[])
     // Let's process all lines of observation data, one by one
     while (roffs >> rod  && roffs_station >> rod_station) 
     {
+        cout << "receiver and station time: " << rod.time << "  " << rod_station.time << endl; 
         if (rod.epochFlag == 0 || rod.epochFlag == 1) // Begin usable data
         {
             //int cnt;
