@@ -82,7 +82,7 @@ void decorrelation(const MatrixXd Qn, MatrixXd& Q_decorr, MatrixXd& Zt, MatrixXd
 
     decorr(L, D, Zt, iZt);
     Q_decorr = Zt * Q * Zt.transpose();
-    cout << "Zt: " << Zt << endl;
+    //cout << "Zt: " << Zt << endl;
     //cout << "Q_decorr : " << Q_decorr << endl;
 }
 
@@ -235,16 +235,16 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
     MatrixXd hh = (Ht * W_dd * H).inverse() * Ht * W_dd;
     MatrixXd Q_xn = hh * Q_dd * hh.transpose();
 
-    cout << "W_dd: " << W_dd << endl;
-    cout << "hh: " << hh << endl;
-    cout << "Q_dd: " << Q_dd << endl;
-    cout << "Q_xn: " << Q_xn << endl;
+    // cout << "W_dd: " << W_dd << endl;
+    // cout << "hh: " << hh << endl;
+    // cout << "Q_dd: " << Q_dd << endl;
+    // cout << "Q_xn: " << Q_xn << endl;
     //cout << "Q_xn size: " << Q_xn.rows() << "  " << Q_xn.cols() << endl;
     //cout << "n: " << n << endl;
     MatrixXd Qx = Q_xn.block(0, 0, 3, 3);
     //cout << "Qx: " << Qx << endl;
     MatrixXd Qn = Q_xn.block(3, 3,  n - 1, n - 1);
-    cout << "Qn: " << Qn << endl;
+    //cout << "Qn: " << Qn << endl;
     VectorXd N = x.segment(3, n - 1);
     VectorXd N_fixed;
     lambda_solver(Qn, N, N_fixed);
