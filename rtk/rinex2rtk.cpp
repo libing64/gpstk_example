@@ -1,5 +1,8 @@
+#include <iostream>
 #include <string>
 #include <vector>
+#include <limits>
+#include <cfloat>
 
 // Classes for handling observations RINEX files (data)
 #include "Rinex3ObsHeader.hpp"
@@ -83,19 +86,46 @@ void decorrelation(const MatrixXd Qn, MatrixXd& Q_decorr, MatrixXd& Zt, MatrixXd
     //cout << "Q_decorr : " << Q_decorr << endl;
 }
 
+void lambda_search(MatrixXd Qz, VectorXd z, VectorXd& z_fixed)
+{
+    int n = Qz.rows();
+    int range = 3;
+    VectorXd offset = VectorXd::Zero(n);
+    for (int i = 0; i < n; i++)
+        z_fixed(i) = round(z(i));
+    for (int i = 0; i < n; i++)
+    {
+        VectorXd zz = z_fixed;
+        double min_val = DBL_MAX;
+        for (int j = -range; j <= range; j++)
+        {
+            zz(i) = z_fixed(i) + j;
+            VectorXd dz = (zz - z);
+            double val = dz.transpose() * Qz * dz; 
+            if (val < min_val)
+            {
+                min_val = val;
+                offset(i) = j;
+            }
+        }
+    }
+    cout << "offset: " << offset.transpose() << endl;
+    z_fixed = z + offset;
+}
+
 //整周模糊度求解
 void lambda_solver(MatrixXd Qa, VectorXd a, VectorXd& a_fixed)
 {
-    MatrixXd Zt, iZt, Q_z;
+    MatrixXd Zt, iZt, Qz;
     int n = Qa.rows();
-    decorrelation(Qa, Q_z, Zt, iZt);
+    decorrelation(Qa, Qz, Zt, iZt);
     VectorXd z = Zt * a;
     cout << "a: " << a.transpose() << endl;
     cout << "z: " << z.transpose() << endl;
 
     VectorXd z_fixed = VectorXd::Zero(n);
-    for (int i = 0; i < n; i++) z_fixed(i) = round(z(i));
 
+    lambda_search(Qz, z, z_fixed);
     a_fixed = iZt * z_fixed;
     cout << "z_fixed: " << z_fixed.transpose() << endl;
     cout << "a_fix: " << a_fixed.transpose() << endl;
@@ -289,8 +319,8 @@ int main(int argc, char *argv[])
     int indexP1_station = roh_station.getObsIndex("C1C");
     int indexC1_station = roh_station.getObsIndex("L1C");
 
-    cout << "indexP1: " << indexP1 << endl;
-    cout << "indexC1: " << indexC1 << endl;
+    // cout << "indexP1: " << indexP1 << endl;
+    // cout << "indexC1: " << indexC1 << endl;
 
 
     // Let's process all lines of observation data, one by one
@@ -334,10 +364,10 @@ int main(int argc, char *argv[])
 
                     //compute sat pos
                     Xvt sat_xvt = bcestore.getXvt(prn, rod.time);
-                    cout << "satellite pos:" << sat_xvt.x << endl;
-                    cout << "satellite vel:" << sat_xvt.v << endl;
-                    cout << "satellite clock bias: " << sat_xvt.clkbias << endl;
-                    cout << "satellite clock drift: " << sat_xvt.clkdrift << endl;
+                    // cout << "satellite pos:" << sat_xvt.x << endl;
+                    // cout << "satellite vel:" << sat_xvt.v << endl;
+                    // cout << "satellite clock bias: " << sat_xvt.clkbias << endl;
+                    // cout << "satellite clock drift: " << sat_xvt.clkdrift << endl;
 
 
                     rtk_obs.P1 = P1;
@@ -353,8 +383,8 @@ int main(int argc, char *argv[])
                     continue;
                 }
 
-                cout << "satId:  " << prn << "   P1: " << P1 << "   C1:" << C1 << endl;
-                cout << "station:" << prn << "   P1: " << P1_station << "   C1:" << C1_station << endl;
+                // cout << "satId:  " << prn << "   P1: " << P1 << "   C1:" << C1 << endl;
+                // cout << "station:" << prn << "   P1: " << P1_station << "   C1:" << C1_station << endl;
                 double ionocorr(0.0);
 
                 // Now, we include the current PRN number in the first part
