@@ -143,8 +143,8 @@ void covariance_matrix(int n, MatrixXd &H_dd, MatrixXd &Q_dd, MatrixXd &W_dd)
     Eigen::MatrixXd Q = MatrixXd::Zero(2 * n, 2 * n); //covariance matrix of raw gps measurement
     for (int i = 0; i < n; i++)
     {
-        Q(2 * i, 2 * i) = Pcov;         //covariance of Pseudorange measurement
-        Q(2 * i + 1, 2 * i + 1) = Ccov; //covariance of carrier phase measurement
+        Q(2 * i, 2 * i) = Ccov;         //covariance of Pseudorange measurement
+        Q(2 * i + 1, 2 * i + 1) = Pcov; //covariance of carrier phase measurement
     }
     //cout << "line: " << __LINE__ << endl;
     //compute cov of difference
