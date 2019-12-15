@@ -70,31 +70,23 @@ MatrixXd matrix_round(const MatrixXd m)
 void decorrelation(const MatrixXd Qn, MatrixXd& Q_decorr, MatrixXd& ZT)
 {
     MatrixXd Q_raw = Qn;
-    //MatrixXd Q = Qn;
-    //int n = Qn.rows();
+    MatrixXd Q = Qn;
+    int n = Qn.rows();
 
-    int n = 6;
-    MatrixXd Q = MatrixXd::Zero(n, n);
-    Q <<  0.0977961, 0.0161137,  0.0468261, 0.0320695,  0.080857,  0.0376408,
-        0.0161137, 0.0208976,  0.0185378, 0.00290225, 0.0111409, 0.0247762,
-        0.0468261, 0.0185378,  0.0435412, 0.0227732,  0.0383208, 0.0382978,
-        0.0320695, 0.00290225, 0.0227732, 0.0161712,  0.0273471, 0.0154774,
-        0.080857,  0.0111409,  0.0383208, 0.0273471,  0.0672121, 0.0294637,
-        0.0376408, 0.0247762,  0.0382978, 0.0154774,  0.0294637, 0.0392536;
+    MatrixXd L, Z;
+    VectorXd D;
+    ldl_decomp(Q, L, D);
 
-    MatrixXd L = MatrixXd::Zero(n, n);
-    VectorXd D = VectorXd::Zero(n);
-    MatrixXd Z = MatrixXd::Identity(n, n);
+    MatrixXd DD = MatrixXd::Zero(n, n);
+    for (int i = 0; i < n; i++)
+        DD(i, i) = D(i);
+    MatrixXd Q_ldlt = L.transpose() * DD * L;
 
-    ARLambda AR;
-    AR.factorize(Q, L, D);
-    AR.reduction(L, D, Z);
-
-    cout << "L: " << L << endl;
-    cout << "D: " << D.transpose() << endl;
-    MatrixXd QQ = Z.transpose() * Q * Z;
-    cout << "Z: " << Z << endl;
-    cout << "QQ: " << QQ << endl;
+    decorr(L, D, Z);
+    ZT = Z.transpose();
+    Q_decorr = Z.transpose() * Q * Z;
+    //cout << "ZT: " << ZT << endl;
+    //cout << "Q_decorr : " << Q_decorr << endl;
 }
 
 //整周模糊度求解
