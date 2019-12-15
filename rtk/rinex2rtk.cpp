@@ -272,9 +272,6 @@ int main(int argc, char *argv[])
         exit(-1);
     }
 
-    // Let's compute an useful constant (also found in "GNSSconstants.hpp")
-    const double gamma = (L1_FREQ_GPS / L2_FREQ_GPS) * (L1_FREQ_GPS / L2_FREQ_GPS);
-
     // Read nav file and store unique list of ephemerides
     Rinex3NavStream rnffs(argv[2]); // Open ephemerides data file
     Rinex3NavData rne;
@@ -359,6 +356,14 @@ int main(int argc, char *argv[])
                     prn = it->first;
                     P1 = rod.getObs(it->first, indexP1).data;
                     C1 = rod.getObs(it->first, indexC1).data;
+
+                    Rinex3ObsData::DataMap::const_iterator it_station;
+                    it_station = rod_station.obs.find(it->first);
+                    if (it_station == rod_station.obs.end())
+                    {
+                        cout << "sat " << it->first << "  is not observed in station" << endl;
+                        continue;
+                    }
                     P1_station = rod_station.getObs(it->first, indexP1_station).data;
                     C1_station = rod_station.getObs(it->first, indexC1_station).data;
 
@@ -382,20 +387,6 @@ int main(int argc, char *argv[])
                 {
                     continue;
                 }
-
-                // cout << "satId:  " << prn << "   P1: " << P1 << "   C1:" << C1 << endl;
-                // cout << "station:" << prn << "   P1: " << P1_station << "   C1:" << C1_station << endl;
-                double ionocorr(0.0);
-
-                // Now, we include the current PRN number in the first part
-                // of "it" iterator into the vector holding the satellites.
-                // All satellites in view at this epoch that have P1 or P1+P2
-                // observations will be included.
-                prnVec.push_back(it->first);
-
-                // The same is done for the vector of doubles holding the
-                // corrected ranges
-                rangeVec.push_back(P1 - ionocorr);
             }
             rtk_solver(rtk_obs_q);
         }
