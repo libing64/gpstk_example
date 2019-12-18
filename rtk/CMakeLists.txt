@@ -6,6 +6,6 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 
 message(STATUS, "include dir: ${EIGEN3_INCLUDE_DIR}")
 
-add_executable(rinex2rtk rinex2rtk.cpp decorr.cpp)
+add_executable(rinex2rtk rinex2rtk.cpp decorr.cpp pvt.cpp)
 target_link_libraries(rinex2rtk gpstk Eigen3::Eigen)
 

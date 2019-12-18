@@ -38,6 +38,7 @@
 #include <Eigen/Core>
 
 #include "decorr.h"
+#include "pvt.h"
 
 using namespace std;
 using namespace gpstk;
@@ -343,6 +344,7 @@ int main(int argc, char *argv[])
             vector<SatID> prnVec;
             vector<double> rangeVec;
             vector<rtk_obs_t> rtk_obs_q;
+            vector<pvt_obs_t> pvt_obs_q;
 
             // Define the "it" iterator to visit the observations PRN map.
             // Rinex3ObsData::DataMap is a map from RinexSatID to
@@ -359,6 +361,7 @@ int main(int argc, char *argv[])
             RinexSatID prn;
 
             rtk_obs_t rtk_obs;
+            pvt_obs_t pvt_obs;
             for (it = rod.obs.begin(); it != rod.obs.end(); it++)
             {
                 // The RINEX file may have P1 observations, but the current
@@ -394,6 +397,13 @@ int main(int argc, char *argv[])
                         rtk_obs.sat_xvt = sat_xvt;
                         rtk_obs.prn = prn;
                         rtk_obs_q.push_back(rtk_obs);
+
+                        pvt_obs.P = P1;
+                        Triple sat_pos = sat_xvt.getPos();
+                        pvt_obs.sat_pos(0) = sat_pos[0];
+                        pvt_obs.sat_pos(1) = sat_pos[1];
+                        pvt_obs.sat_pos(2) = sat_pos[2];
+                        pvt_obs_q.push_back(pvt_obs);
                     }
                 }
                 catch (...)
@@ -401,7 +411,8 @@ int main(int argc, char *argv[])
                     continue;
                 }
             }
-            rtk_solver(rtk_obs_q);
+            //rtk_solver(rtk_obs_q);
+            pvt_solver(pvt_obs_q);
         }
 
         
