@@ -6,9 +6,9 @@ double distance(Vector3d a, Vector3d b)
     return (a - b).norm();
 }
 
-void genetate_data(vector<pvt_obs_t>& pvt_obs)
+void genetate_data(vector<pvt_obs_t>& pvt_obs, VectorXd& x)
 {
-    VectorXd x = VectorXd::Random(4);
+    x = VectorXd::Random(4);
     cout << "xx: " << x.transpose() << endl;
 
     for (int i = 0; i < pvt_obs.size(); i++)
@@ -42,21 +42,20 @@ void residual(VectorXd x, vector<pvt_obs_t> pvt_obs, VectorXd& res, MatrixXd& H)
 //solve receiver position
 void pvt_solver(vector<pvt_obs_t> pvt_obs)
 {
-
-    genetate_data(pvt_obs);
-    VectorXd x = VectorXd::Zero(4); //x, y, z, tau
+    VectorXd x = Vector4d::Zero(4);
+    //VectorXd x = Vector4d(-3978242.4348, 3382841.1715, 3649902.7667, 0);
+    // genetate_data(pvt_obs, x);
     //cout << "xx2: " << x.transpose() << endl;
+
     int n = pvt_obs.size();
 
-    //VectorXd x = Vector4d(-3978242.4348, 3382841.1715, 3649902.7667, 0);
-    
     double err = 1e8;
     int cnt = 0;
     VectorXd y = VectorXd::Zero(n);
     MatrixXd H = MatrixXd::Zero(n, 4);
     for (int i = 0; i < n; i++)
     {
-        cout << "sat: " << i << "  P:" << pvt_obs[i].P  << "  " << pvt_obs[i].sat_pos.transpose() << endl;
+        cout << "sat: " << i << "  P:" << pvt_obs[i].P << "  ionocorr:" << pvt_obs[i].ionocorr << "  " << pvt_obs[i].sat_pos.transpose() << endl;
     }
     for (int i = 0; i < n; i++)
     {
@@ -64,10 +63,10 @@ void pvt_solver(vector<pvt_obs_t> pvt_obs)
         Vector3d sat_pos = obs.sat_pos;
         double P = obs.P;
         double rho = distance(sat_pos, x.segment(0, 3));
-        y(i) = P - rho;
+        y(i) = P - rho - x(3);
         cout << "P: " << P << "  rho : " << rho << "  y: " << y(i) << endl;
     }
-    while (err > 0.1 && cnt < 20)
+    while (err > 0.01 && cnt < 20)
     {
         cout << "cnt : <<<<<<<<<<<<<<<<<<<<<<<<<<" << cnt << endl;
         for (int i = 0; i < n; i++)
@@ -83,12 +82,14 @@ void pvt_solver(vector<pvt_obs_t> pvt_obs)
             H(i, 2) = (x(2) - sat_pos(2)) / rho;
             H(i, 3) = 1.0;
         }
-        VectorXd dx = H.bdcSvd(ComputeThinU | ComputeThinV).solve(y);
+        MatrixXd HH = H.transpose() * H;
+        VectorXd dx = HH.ldlt().solve(H.transpose()* y);
         cout << "H: " << H << endl;
         cout << "y: " << y.transpose() << endl;
         cout << "dx: " << dx.transpose() << endl;
+        cout << "H * dx: " << (H*dx).transpose() << endl;
         x += dx;
-        err = y.norm();
+        err = dx.norm();
         cout << "x: " << x.transpose() << endl;
         cout << "err: " << err << endl;
         cnt++;

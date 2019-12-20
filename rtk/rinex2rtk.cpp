@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
 
     // Declaration of objects for storing ephemerides and handling RAIM
     GPSEphemerisStore bcestore;
-
+    const double gamma = (L1_FREQ_GPS / L2_FREQ_GPS) * (L1_FREQ_GPS / L2_FREQ_GPS);
     // This verifies the ammount of command-line parameters given and
     // prints a help message, if necessary
     if (argc != 4)
@@ -323,13 +323,16 @@ int main(int argc, char *argv[])
     // observation types we are interested in. Given that old-style
     // observation types are used, GPS is assumed.
     int indexP1 = roh.getObsIndex("C1C");
+    int indexP2 = roh.getObsIndex("C2W");
     int indexC1 = roh.getObsIndex("L1C");
+
 
     int indexP1_station = roh_station.getObsIndex("C1C");
     int indexC1_station = roh_station.getObsIndex("L1C");
 
-    // cout << "indexP1: " << indexP1 << endl;
-    // cout << "indexC1: " << indexC1 << endl;
+    cout << "indexP1: " << indexP1 << endl;
+    cout << "indexP2: " << indexP2 << endl;
+    cout << "indexC1: " << indexC1 << endl;
 
 
     // Let's process all lines of observation data, one by one
@@ -356,7 +359,7 @@ int main(int argc, char *argv[])
             // pseudoranges for the current epoch. They are correspondly fed
             // into "prnVec" and "rangeVec"; "obs" is a public attribute of
             // Rinex3ObsData to get the map of observations
-            double P1(0.0), C1(0.0);
+            double P1(0.0), P2(0.0), C1(0.0);
             double P1_station(0.0), C1_station(0.0);
             RinexSatID prn;
 
@@ -370,7 +373,9 @@ int main(int argc, char *argv[])
                 {
                     prn = it->first;
                     P1 = rod.getObs(it->first, indexP1).data;
+                    P2 = rod.getObs(it->first, indexP2).data;
                     C1 = rod.getObs(it->first, indexC1).data;
+                    double ionocorr = 1.0 / (1.0 - gamma) * (P1 - P2);
 
                     Rinex3ObsData::DataMap::const_iterator it_station;
                     it_station = rod_station.obs.find(it->first);
@@ -398,7 +403,8 @@ int main(int argc, char *argv[])
                         rtk_obs.prn = prn;
                         rtk_obs_q.push_back(rtk_obs);
 
-                        pvt_obs.P = P1;
+                        pvt_obs.P = P1 - ionocorr;
+                        pvt_obs.ionocorr = ionocorr;
                         Triple sat_pos = sat_xvt.getPos();
                         pvt_obs.sat_pos(0) = sat_pos[0];
                         pvt_obs.sat_pos(1) = sat_pos[1];
