@@ -8,12 +8,12 @@ double distance(Vector3d a, Vector3d b)
 
 void genetate_data(vector<pvt_obs_t>& pvt_obs, VectorXd& x)
 {
-    x = VectorXd::Random(4);
+    x = VectorXd::Random(4) * 100000;
     cout << "xx: " << x.transpose() << endl;
 
     for (int i = 0; i < pvt_obs.size(); i++)
     {
-        pvt_obs[i].sat_pos = VectorXd::Random(3) * 1000;
+        pvt_obs[i].sat_pos = VectorXd::Random(3) * 1000000;
         pvt_obs[i].P = distance(pvt_obs[i].sat_pos, x.segment(0, 3)) + x(3);
         cout << "sat: " << i << "  P:" << pvt_obs[i].P << "  " << pvt_obs[i].sat_pos.transpose() << endl;
     }
@@ -44,9 +44,9 @@ void pvt_solver(vector<pvt_obs_t> pvt_obs)
 {
     VectorXd x = Vector4d::Zero(4);
     //VectorXd x = Vector4d(-3978242.4348, 3382841.1715, 3649902.7667, 0);
-    // genetate_data(pvt_obs, x);
+    genetate_data(pvt_obs, x);
     //cout << "xx2: " << x.transpose() << endl;
-
+    x = Vector4d::Zero(4);
     int n = pvt_obs.size();
 
     double err = 1e8;

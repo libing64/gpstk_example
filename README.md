@@ -153,7 +153,17 @@ Rinex文件分为文件头和数据两部分，文件头指明了基本信息，
 * 8G 6G21G29G30G31G 3G24G16 : 8代表有8个观测，后面是每个卫星的ID，前缀G代表GPS(G 3,代表G03？ 不带补0的？)
 下面每行就是每个卫星的观测数据
 
-
+## 2.4 观测类型 3字节
+为了兼容更多观测类型 改为3字节
+* t: observation type
+  * C : pseudorange 
+  * L : carrier phase
+  * D : doppler
+  * S : signal strengh
+* n: band/frequency
+  * 1,2,3,..8
+* a: attribute
+  * tracking mode or channel
 # 3. 案例学习
 
 ## 3.1 example1.cpp
