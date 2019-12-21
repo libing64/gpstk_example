@@ -1,4 +1,6 @@
 #include "pvt.h"
+#include "GPSEphemerisStore.hpp"
+
 
 
 double distance(Vector3d a, Vector3d b)
@@ -51,9 +53,10 @@ void residual(VectorXd x, vector<pvt_obs_t> pvt_obs, VectorXd& res, MatrixXd& H)
     }
 }
 //solve receiver position
-void pvt_solver(vector<pvt_obs_t> pvt_obs)
+void pvt_solver(vector<pvt_obs_t> pvt_obs, GPSEphemerisStore bcestore, CommonTime time)
 {
     VectorXd x = Vector4d::Zero(4);
+    const double C_MPS = 2.99792458e8;
     //VectorXd x = Vector4d(-3978242.4348, 3382841.1715, 3649902.7667, 0);
     //genetate_data(pvt_obs, x);
     //cout << "xx2: " << x.transpose() << endl;
@@ -88,8 +91,16 @@ void pvt_solver(vector<pvt_obs_t> pvt_obs)
             Vector3d sat_pos = obs.sat_pos;
             double P = obs.P;
             double rho = distance(sat_pos, x.segment(0, 3));
+            double tx = rho / C_MPS;
             y(i) = P - rho - x(3);
-            
+
+            //update sat pos with transmite time compensation
+            Xvt sat_xvt = bcestore.getXvt(obs.prn, time - tx);
+            Triple ssat_pos = sat_xvt.getPos();
+            sat_pos(0) = ssat_pos[0];
+            sat_pos(1) = ssat_pos[1];
+            sat_pos(2) = ssat_pos[2];
+
             Vector3d I = x.segment(0, 3) - sat_pos;
             I.normalize();
             H.block(i, 0, 1, 3) = I.transpose();

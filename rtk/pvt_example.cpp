@@ -137,6 +137,7 @@ int main(int argc, char *argv[])
                     // cout << "satellite clock drift: " << sat_xvt.clkdrift << endl;
 
                     pvt_obs.P = P1 - ionocorr;
+                    pvt_obs.prn = prn;
                     Triple sat_pos = sat_xvt.getPos();
                     pvt_obs.sat_pos(0) = sat_pos[0];
                     pvt_obs.sat_pos(1) = sat_pos[1];
@@ -149,7 +150,7 @@ int main(int argc, char *argv[])
                 }
             }
             //rtk_solver(rtk_obs_q);
-            pvt_solver(pvt_obs_q);
+            pvt_solver(pvt_obs_q, bcestore, rod.time);
         }
 
         

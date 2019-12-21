@@ -416,8 +416,8 @@ int main(int argc, char *argv[])
                     continue;
                 }
             }
-            //rtk_solver(rtk_obs_q);
-            pvt_solver(pvt_obs_q);
+            rtk_solver(rtk_obs_q);
+            //pvt_solver(pvt_obs_q);
         }
 
         

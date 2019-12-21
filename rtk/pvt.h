@@ -2,15 +2,18 @@
 #define __PVT_H
 #include<iostream>
 #include<Eigen/Eigen>
+#include "GPSEphemerisStore.hpp"
 
 using namespace std;
 using namespace Eigen;
+using namespace gpstk;
 
 typedef struct
 {
     double P;
     Vector3d sat_pos;
+    RinexSatID prn;
 } pvt_obs_t;
 
-void pvt_solver(vector<pvt_obs_t> pvt_obs);
+void pvt_solver(vector<pvt_obs_t> pvt_obs, GPSEphemerisStore bcestore, CommonTime time);
 #endif
