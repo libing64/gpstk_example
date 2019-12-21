@@ -9,3 +9,7 @@ message(STATUS, "include dir: ${EIGEN3_INCLUDE_DIR}")
 add_executable(rinex2rtk rinex2rtk.cpp decorr.cpp pvt.cpp)
 target_link_libraries(rinex2rtk gpstk Eigen3::Eigen)
 
+
+add_executable(pvt_example pvt_example.cpp decorr.cpp pvt.cpp)
+target_link_libraries(pvt_example gpstk Eigen3::Eigen)
+

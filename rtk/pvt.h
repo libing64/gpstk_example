@@ -9,7 +9,6 @@ using namespace Eigen;
 typedef struct
 {
     double P;
-    double ionocorr;
     Vector3d sat_pos;
 } pvt_obs_t;
 

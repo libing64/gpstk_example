@@ -404,7 +404,6 @@ int main(int argc, char *argv[])
                         rtk_obs_q.push_back(rtk_obs);
 
                         pvt_obs.P = P1 - ionocorr;
-                        pvt_obs.ionocorr = ionocorr;
                         Triple sat_pos = sat_xvt.getPos();
                         pvt_obs.sat_pos(0) = sat_pos[0];
                         pvt_obs.sat_pos(1) = sat_pos[1];
