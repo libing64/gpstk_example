@@ -12,8 +12,7 @@ typedef struct
 {
     double P;
     Vector3d sat_pos;
-    RinexSatID prn;
 } pvt_obs_t;
 
-void pvt_solver(vector<pvt_obs_t> pvt_obs, GPSEphemerisStore bcestore, CommonTime time);
+void pvt_solver(vector<pvt_obs_t> pvt_obs);
 #endif

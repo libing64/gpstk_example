@@ -52,8 +52,15 @@ void residual(VectorXd x, vector<pvt_obs_t> pvt_obs, VectorXd& res, MatrixXd& H)
         H(i, 3) = 1.0;
     }
 }
+
+/// defined in ICD-GPS-200C, 20.3.3.4.3.3 and Table 20-IV
+/// @return angular velocity of Earth in radians/sec.
+double angVelocity() 
+{
+    return 7.2921151467e-5;
+}
 //solve receiver position
-void pvt_solver(vector<pvt_obs_t> pvt_obs, GPSEphemerisStore bcestore, CommonTime time)
+void pvt_solver(vector<pvt_obs_t> pvt_obs)
 {
     VectorXd x = Vector4d::Zero(4);
     const double C_MPS = 2.99792458e8;
@@ -94,12 +101,13 @@ void pvt_solver(vector<pvt_obs_t> pvt_obs, GPSEphemerisStore bcestore, CommonTim
             double tx = rho / C_MPS;
             y(i) = P - rho - x(3);
 
-            //update sat pos with transmite time compensation
-            Xvt sat_xvt = bcestore.getXvt(obs.prn, time - tx);
-            Triple ssat_pos = sat_xvt.getPos();
-            sat_pos(0) = ssat_pos[0];
-            sat_pos(1) = ssat_pos[1];
-            sat_pos(2) = ssat_pos[2];
+            // correct for earth rotation
+            double wt = angVelocity() * tx; // radians
+            sat_pos(0) = cos(wt) * sat_pos(0) + sin(wt) * sat_pos(1);
+            sat_pos(1) = -sin(wt) * sat_pos(0) + cos(wt) * sat_pos(1);
+            sat_pos(2) = sat_pos(2);
+
+            rho = distance(sat_pos, x.segment(0, 3));
 
             Vector3d I = x.segment(0, 3) - sat_pos;
             I.normalize();
