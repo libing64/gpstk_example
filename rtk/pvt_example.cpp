@@ -48,6 +48,7 @@ using namespace Eigen;
 int main(int argc, char *argv[])
 {
 
+    const double C_MPS = 2.99792458e8;
     // Declaration of objects for storing ephemerides and handling RAIM
     GPSEphemerisStore bcestore;
     const double gamma = (L1_FREQ_GPS / L2_FREQ_GPS) * (L1_FREQ_GPS / L2_FREQ_GPS);
@@ -131,12 +132,12 @@ int main(int argc, char *argv[])
 
                     //compute sat pos
                     Xvt sat_xvt = bcestore.getXvt(prn, rod.time);
-                    // cout << "satellite pos:" << sat_xvt.x << endl;
-                    // cout << "satellite vel:" << sat_xvt.v << endl;
-                    // cout << "satellite clock bias: " << sat_xvt.clkbias << endl;
-                    // cout << "satellite clock drift: " << sat_xvt.clkdrift << endl;
+                    cout << "satellite pos:" << sat_xvt.x << endl;
+                    cout << "satellite vel:" << sat_xvt.v << endl;
+                    cout << "satellite clock bias: " << sat_xvt.clkbias * C_MPS << endl;
+                    cout << "satellite clock drift: " << sat_xvt.clkdrift << endl;
 
-                    pvt_obs.P = P1 - ionocorr;
+                    pvt_obs.P = P1 - ionocorr + sat_xvt.clkbias * C_MPS;
                     Triple sat_pos = sat_xvt.getPos();
                     pvt_obs.sat_pos(0) = sat_pos[0];
                     pvt_obs.sat_pos(1) = sat_pos[1];

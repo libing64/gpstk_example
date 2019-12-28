@@ -53,6 +53,14 @@ void residual(VectorXd x, vector<pvt_obs_t> pvt_obs, VectorXd& res, MatrixXd& H)
     }
 }
 
+//TODO
+void ecef2geodetic(Vector3d xyz, Vector3d& llh)
+{
+    double p = xyz.segment(0, 2).norm();
+    llh[0] = atan2(xyz(2), p);//纬度
+    llh[1] = xyz.norm(); //高度
+    llh[2] = p / cos(llh(0));//经度
+}
 /// defined in ICD-GPS-200C, 20.3.3.4.3.3 and Table 20-IV
 /// @return angular velocity of Earth in radians/sec.
 double angVelocity() 
@@ -107,15 +115,23 @@ void pvt_solver(vector<pvt_obs_t> pvt_obs)
             sat_pos(1) = -sin(wt) * sat_pos(0) + cos(wt) * sat_pos(1);
             sat_pos(2) = sat_pos(2);
 
+
+            //trop correction
+            Vector3d llh;
+            ecef2geodetic(x.segment(0, 3), llh);
             rho = distance(sat_pos, x.segment(0, 3));
+
+            double elev_angle = sat_elevation_angle(sat_pos, x.segment(0, 3));
+            W(i, i) = 1 / (sin(elev_angle) * sin(elev_angle) + 1e-6);
+
+            
 
             Vector3d I = x.segment(0, 3) - sat_pos;
             I.normalize();
             H.block(i, 0, 1, 3) = I.transpose();
             H(i, 3) = 1.0;
 
-            double elev_angle = sat_elevation_angle(sat_pos, x.segment(0, 3));
-            W(i, i) = 1 / (sin(elev_angle) * sin(elev_angle) + 1e-6);
+
 
             cout << "P: " << P << "  rho : " << rho  << "  y: " << y(i)  << "  weight: " << W(i, i) << " elev angle: " << elev_angle << endl;
         }
