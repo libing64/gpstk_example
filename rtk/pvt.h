@@ -15,4 +15,8 @@ typedef struct
 } pvt_obs_t;
 
 void pvt_solver(vector<pvt_obs_t> pvt_obs, Vector4d &solution, VectorXd &residual);
+
+double angVelocity();
+double distance(Vector3d a, Vector3d b);
+
 #endif

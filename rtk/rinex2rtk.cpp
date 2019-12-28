@@ -167,10 +167,19 @@ void covariance_matrix(int n, MatrixXd &H_dd, MatrixXd &Q_dd, MatrixXd &W_dd)
     //cout << "W_dd " << W_dd << endl;
 }
 
-//(-3976219.5082, 3382372.5671, 3652512.9849).
-//(-3978242.4348, 3382841.1715, 3649902.7667)
+void correct_satpos(Triple& sat_pos, Vector3d rcv_pos)
+{
+    Vector3d pos;
+    pos(0) = sat_pos[0];
+    pos(1) = sat_pos[1];
+    pos(2) = sat_pos[2];
+    double tx = distance(pos, rcv_pos) / C_MPS;
+    double wt = angVelocity() * tx; // radians
+    sat_pos[0] = cos(wt) * sat_pos[0] + sin(wt) * sat_pos[1];
+    sat_pos[1] = -sin(wt) * sat_pos[0] + cos(wt) * sat_pos[1];
+}
 //measurement [c1, p1, c2, p2, ...cn, pn] -> double difference
-void rtk_solver(vector<rtk_obs_t> &rtk_obs)
+void rtk_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
 {
     int n = rtk_obs.size();
     cout << "rtk solver: " << n << endl;
@@ -181,12 +190,7 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
 
     MatrixXd H_dd, W_dd, Q_dd;
     covariance_matrix(n, H_dd, Q_dd, W_dd);
-    //position of two receivers
-    Vector3d pos1 = Vector3d(-3976219.5082, 3382372.5671, 3652512.9849);//station
-    Vector3d pos2 = Vector3d(-3978242.4348, 3382841.1715, 3649902.7667);//receiver
 
-  
-    //computer Qx and Qn
     for (int i = 0; i < (n - 1); i++)
     {
         rtk_obs_t obs1 = rtk_obs[i];
@@ -199,12 +203,16 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
 
         Vector3d I1, I2;
         Triple sat_pos1 = obs1.sat_xvt.getPos();
+        //correct_satpos(sat_pos1, station_pos);
+        //update sat possat_pos
+
         Triple sat_pos2 = obs2.sat_xvt.getPos();
+        //correct_satpos(sat_pos2, station_pos);
 
         for (int i = 0; i < 3; i++)
         {
-            I1(i) = sat_pos1[i] - pos1(i);
-            I2(i) = sat_pos2[i] - pos1(i);
+            I1(i) = sat_pos1[i] - station_pos(i);
+            I2(i) = sat_pos2[i] - station_pos(i);
         }
         I1.normalize();
         I2.normalize();
@@ -229,8 +237,6 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
     {
         cout << "lambda solve failed!!!!!  " << endl; 
     }
-    Vector3d baseline = pos1 - pos2;
-    cout << "baseline: " << baseline.transpose() << endl;
 
     //compute Qxn, Qx, QnComputeThinV
     MatrixXd hh = (Ht * W_dd * H).inverse() * Ht * W_dd;
@@ -396,15 +402,15 @@ int main(int argc, char *argv[])
                         // cout << "satellite clock bias: " << sat_xvt.clkbias << endl;
                         // cout << "satellite clock drift: " << sat_xvt.clkdrift << endl;
 
-                        rtk_obs.P1 = P1;
-                        rtk_obs.P2 = P1_station;
+                        rtk_obs.P1 = P1 - ionocorr + sat_xvt.clkbias * C_MPS;
+                        rtk_obs.P2 = P1_station - ionocorr + sat_xvt.clkbias * C_MPS;
                         rtk_obs.C1 = C1;
                         rtk_obs.C2 = C1_station;
                         rtk_obs.sat_xvt = sat_xvt;
                         rtk_obs.prn = prn;
                         rtk_obs_q.push_back(rtk_obs);
 
-                        pvt_obs.P = P1 - ionocorr + sat_xvt.clkbias * C_MPS;
+                        pvt_obs.P = P1_station - ionocorr + sat_xvt.clkbias * C_MPS;
                         Triple sat_pos = sat_xvt.getPos();
                         pvt_obs.sat_pos(0) = sat_pos[0];
                         pvt_obs.sat_pos(1) = sat_pos[1];
@@ -417,8 +423,19 @@ int main(int argc, char *argv[])
                     continue;
                 }
             }
-            rtk_solver(rtk_obs_q);
-            //pvt_solver(pvt_obs_q);
+
+            //solve station pos
+            Vector4d station_solution;
+            VectorXd residual;
+            pvt_solver(pvt_obs_q, station_solution, residual);
+            cout << "=================" << endl;
+            cout << "station_solution: " << station_solution.transpose() << endl;
+            cout << "residual: " << residual.transpose() << endl;
+            cout << "=================" << endl;
+
+            //solve relative pos
+            Vector3d station_pos = station_solution.segment(0, 3);
+            rtk_solver(rtk_obs_q, station_pos);
         }
 
         
