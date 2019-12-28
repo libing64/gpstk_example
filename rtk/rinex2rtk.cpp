@@ -404,8 +404,8 @@ int main(int argc, char *argv[])
 
                         rtk_obs.P1 = P1 - ionocorr + sat_xvt.clkbias * C_MPS;
                         rtk_obs.P2 = P1_station - ionocorr + sat_xvt.clkbias * C_MPS;
-                        rtk_obs.C1 = C1;
-                        rtk_obs.C2 = C1_station;
+                        rtk_obs.C1 = C1 + sat_xvt.clkbias * C_MPS;
+                        rtk_obs.C2 = C1_station + sat_xvt.clkbias * C_MPS;
                         rtk_obs.sat_xvt = sat_xvt;
                         rtk_obs.prn = prn;
                         rtk_obs_q.push_back(rtk_obs);
