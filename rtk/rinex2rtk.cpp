@@ -269,6 +269,7 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs)
 int main(int argc, char *argv[])
 {
 
+    const double C_MPS = 2.99792458e8;
     // Declaration of objects for storing ephemerides and handling RAIM
     GPSEphemerisStore bcestore;
     const double gamma = (L1_FREQ_GPS / L2_FREQ_GPS) * (L1_FREQ_GPS / L2_FREQ_GPS);
@@ -403,7 +404,7 @@ int main(int argc, char *argv[])
                         rtk_obs.prn = prn;
                         rtk_obs_q.push_back(rtk_obs);
 
-                        pvt_obs.P = P1 - ionocorr;
+                        pvt_obs.P = P1 - ionocorr + sat_xvt.clkbias * C_MPS;
                         Triple sat_pos = sat_xvt.getPos();
                         pvt_obs.sat_pos(0) = sat_pos[0];
                         pvt_obs.sat_pos(1) = sat_pos[1];
