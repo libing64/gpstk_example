@@ -130,12 +130,12 @@ int main(int argc, char *argv[])
                     P2 = rod.getObs(it->first, indexP2).data;
                     double ionocorr = 1.0 / (1.0 - gamma) * (P1 - P2);
 
-                    //compute sat pos
+                    //compute sat pos, takc care of clock bias
                     Xvt sat_xvt = bcestore.getXvt(prn, rod.time);
-                    cout << "satellite pos:" << sat_xvt.x << endl;
-                    cout << "satellite vel:" << sat_xvt.v << endl;
-                    cout << "satellite clock bias: " << sat_xvt.clkbias * C_MPS << endl;
-                    cout << "satellite clock drift: " << sat_xvt.clkdrift << endl;
+                    // cout << "satellite pos:" << sat_xvt.x << endl;
+                    // cout << "satellite vel:" << sat_xvt.v << endl;
+                    // cout << "satellite clock bias: " << sat_xvt.clkbias * C_MPS << endl;
+                    // cout << "satellite clock drift: " << sat_xvt.clkdrift << endl;
 
                     pvt_obs.P = P1 - ionocorr + sat_xvt.clkbias * C_MPS;
                     Triple sat_pos = sat_xvt.getPos();
@@ -149,8 +149,13 @@ int main(int argc, char *argv[])
                     continue;
                 }
             }
-            //rtk_solver(rtk_obs_q);
-            pvt_solver(pvt_obs_q);
+            Vector4d solution;
+            VectorXd residual;
+            pvt_solver(pvt_obs_q, solution, residual);
+            cout << "=================" << endl;
+            cout << "solution: " << solution.transpose() << endl;
+            cout << "residual: " << residual.transpose() << endl;
+            cout << "=================" << endl;
         }
 
         

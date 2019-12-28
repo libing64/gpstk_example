@@ -14,5 +14,5 @@ typedef struct
     Vector3d sat_pos;
 } pvt_obs_t;
 
-void pvt_solver(vector<pvt_obs_t> pvt_obs);
+void pvt_solver(vector<pvt_obs_t> pvt_obs, Vector4d &solution, VectorXd &residual);
 #endif
