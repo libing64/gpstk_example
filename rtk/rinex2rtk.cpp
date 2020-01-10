@@ -179,16 +179,20 @@ int main(int argc, char *argv[])
                         // cout << "satellite clock bias: " << sat_xvt.clkbias << endl;
                         // cout << "satellite clock drift: " << sat_xvt.clkdrift << endl;
 
+                        Triple sat_pos = sat_xvt.getPos();
+
+
                         rtk_obs.P1 = P1 - ionocorr + sat_xvt.clkbias * C_MPS;
                         rtk_obs.P2 = P1_station - ionocorr + sat_xvt.clkbias * C_MPS;
-                        rtk_obs.C1 = C1 + sat_xvt.clkbias * C_MPS;
-                        rtk_obs.C2 = C1_station + sat_xvt.clkbias * C_MPS;
-                        rtk_obs.sat_xvt = sat_xvt;
-                        rtk_obs.prn = prn;
+                        rtk_obs.C1 = C1;
+                        rtk_obs.C2 = C1_station;
+                        rtk_obs.sat_pos(0) = sat_pos[0];
+                        rtk_obs.sat_pos(1) = sat_pos[1];
+                        rtk_obs.sat_pos(2) = sat_pos[2];
+                        //rtk_obs.prn = prn;
                         rtk_obs_q.push_back(rtk_obs);
 
                         pvt_obs.P = P1_station - ionocorr + sat_xvt.clkbias * C_MPS;
-                        Triple sat_pos = sat_xvt.getPos();
                         pvt_obs.sat_pos(0) = sat_pos[0];
                         pvt_obs.sat_pos(1) = sat_pos[1];
                         pvt_obs.sat_pos(2) = sat_pos[2];

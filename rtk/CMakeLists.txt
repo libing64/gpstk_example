@@ -14,6 +14,6 @@ add_executable(pvt_example pvt_example.cpp decorr.cpp pvt.cpp)
 target_link_libraries(pvt_example gpstk Eigen3::Eigen)
 
 
-add_executable(ppp_example ppp_example.cpp decorr.cpp pvt.cpp)
-target_link_libraries(ppp_example gpstk Eigen3::Eigen)
+# add_executable(ppp_example ppp_example.cpp decorr.cpp pvt.cpp)
+# target_link_libraries(ppp_example gpstk Eigen3::Eigen)
 

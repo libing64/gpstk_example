@@ -13,6 +13,41 @@ using namespace std;
 using namespace Eigen;
 using namespace gpstk;
 
+// typedef struct
+// {
+//     double P1;
+//     double P2;
+//     double C1;
+//     double C2;
+//     float pos[3];
+//     float pos_station[3];
+//     Vector3d sat_pos;
+//     //Xvt sat_xvt;
+//     //SatID prn;
+// } rtk_obs_t;
+
+//vector<rtk_obs_t> &rtk_obs, Vector3d station_pos
+void generate_data(vector<rtk_obs_t> &rtk_obs, VectorXd &x_rcv, VectorXd x_station)
+{
+    x_rcv = VectorXd::Random(4) * 100000;//x and dt
+    x_station = x_rcv + VectorXd::Random(4) * 2000; //x and dt
+    cout << "x_rcv: " << x_rcv.transpose() << endl;
+    cout << "x_station: " << x_station.transpose() << endl;
+    for (int i = 0; i < rtk_obs.size(); i++)
+    {
+        rtk_obs[i].sat_pos = VectorXd::Random(3) * 1000000;
+        rtk_obs[i].P1 = distance(rtk_obs[i].sat_pos, x_rcv.segment(0, 3)) + x_rcv(3);
+        rtk_obs[i].P2 = distance(rtk_obs[i].sat_pos, x_station.segment(0, 3)) + x_station(3);
+        double N_rcv = rtk_obs[i].P1 / L1_WAVELENGTH_GPS; //ambiguty resolution
+        double N_station = rtk_obs[i].P2 / L1_WAVELENGTH_GPS;
+        rtk_obs[i].C1 = N_rcv - floor(N_rcv);
+        rtk_obs[i].C2 = N_station - floor(N_station);
+        cout << "sat: " << i << "  " << rtk_obs[i].sat_pos.transpose()
+             << "  P1:" << rtk_obs[i].P1 << "  C1:" << rtk_obs[i].C1 
+             << "  P2:" << rtk_obs[i].P2 << "  C2:" << rtk_obs[i].C2 << endl;
+    }
+}
+
 MatrixXd matrix_round(const MatrixXd m)
 {
     MatrixXd mm = m;
@@ -136,6 +171,9 @@ void correct_satpos(Triple &sat_pos, Vector3d rcv_pos)
 //measurement [c1, p1, c2, p2, ...cn, pn] -> double difference
 void rtk_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
 {
+    VectorXd x_rcv, x_station;
+    generate_data(rtk_obs, x_rcv, x_station);
+    station_pos = x_station.segment(0, 3);
     int n = rtk_obs.size();
     cout << "rtk solver: " << n << endl;
     int rows = 2 * n - 2; //all the measurements converted to double difference
@@ -157,17 +195,19 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
         y(2 * i + 1) = dd_p;
 
         Vector3d I1, I2;
-        Triple sat_pos1 = obs1.sat_xvt.getPos();
+        //Triple sat_pos1 = obs1.sat_xvt.getPos();
+        Vector3d sat_pos1 = obs1.sat_pos;
         //correct_satpos(sat_pos1, station_pos);
         //update sat possat_pos
 
-        Triple sat_pos2 = obs2.sat_xvt.getPos();
+        //Triple sat_pos2 = obs2.sat_xvt.getPos();
+        Vector3d sat_pos2 = obs2.sat_pos;
         //correct_satpos(sat_pos2, station_pos);
 
         for (int i = 0; i < 3; i++)
         {
-            I1(i) = sat_pos1[i] - station_pos(i);
-            I2(i) = sat_pos2[i] - station_pos(i);
+            I1(i) = sat_pos1(i) - station_pos(i);
+            I2(i) = sat_pos2(i) - station_pos(i);
         }
         I1.normalize();
         I2.normalize();

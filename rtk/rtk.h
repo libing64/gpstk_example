@@ -17,8 +17,9 @@ typedef struct
     double C2;
     float pos[3];
     float pos_station[3];
-    Xvt sat_xvt;
-    SatID prn;
+    Vector3d sat_pos;
+    //Xvt sat_xvt;
+    //SatID prn;
 } rtk_obs_t;
 
 void rtk_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos);
