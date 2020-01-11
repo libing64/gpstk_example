@@ -154,9 +154,9 @@ void covariance_matrix(int n, MatrixXd &H_dd, MatrixXd &Q_dd, MatrixXd &W_dd)
     }
     //cout << "line: " << __LINE__ << endl;
     Q_dd = H_dd * Q * H_dd.transpose();
-    cout << "Q: " << Q << endl;
-    cout << "H_dd: " << H_dd << endl;
-    cout << "Q_dd: " << Q_dd << endl;
+    // cout << "Q: " << Q << endl;
+    // cout << "H_dd: " << H_dd << endl;
+    // cout << "Q_dd: " << Q_dd << endl;
     //cout << "line: " << __LINE__ << endl;
     W_dd = Q_dd.inverse();
     //cout << "W_dd " << W_dd << endl;
@@ -167,7 +167,7 @@ void covariance_matrix(int n, MatrixXd &H_dd, MatrixXd &Q_dd, MatrixXd &W_dd)
 void covariance_matrix_sd(int n, MatrixXd &Q, MatrixXd &W)
 {
     const double Pcov = 1.0;
-    const double Ccov = 1.0;
+    const double Ccov = 0.01;
     Q = MatrixXd::Zero(2 * n, 2 * n); //covariance matrix of raw gps measurement
     for (int i = 0; i < n; i++)
     {
@@ -189,15 +189,23 @@ void correct_satpos(Triple &sat_pos, Vector3d rcv_pos)
     sat_pos[0] = cos(wt) * sat_pos[0] + sin(wt) * sat_pos[1];
     sat_pos[1] = -sin(wt) * sat_pos[0] + cos(wt) * sat_pos[1];
 }
+
+/// defined in ICD-GPS-200C, 20.3.3.4.3.3 and Table 20-IV
+/// @return angular velocity of Earth in radians/sec.
+double earth_angle_velocity()
+{
+    return 7.2921151467e-5;
+}
 //measurement [c1, p1, c2, p2, ...cn, pn] -> double difference
 void rtk_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
 {
     VectorXd x_rcv, x_station;
     VectorXd N_rcv, N_station;
-    generate_data(rtk_obs, x_rcv, x_station, N_rcv, N_station);
-    cout << "x_rcv: " << x_rcv.transpose() << endl;
-    cout << "x_station: " << x_station.transpose() << endl;
-    station_pos = x_station.segment(0, 3);
+    // generate_data(rtk_obs, x_rcv, x_station, N_rcv, N_station);
+    // cout << "x_rcv: " << x_rcv.transpose() << endl;
+    // cout << "x_station: " << x_station.transpose() << endl;
+    // station_pos = x_station.segment(0, 3);
+
     int n = rtk_obs.size();
     cout << "rtk solver: " << n << endl;
     int rows = 2 * n - 2; //all the measurements converted to double difference
@@ -216,6 +224,14 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
 
     rtk_obs_t obs1 = rtk_obs[0];
     Vector3d sat_pos1 = obs1.sat_pos;
+    //update sat pos
+    double rho = distance(sat_pos1, station_pos);
+    double tx = rho / C_MPS;
+    // correct for earth rotation
+    double wt = earth_angle_velocity() * tx; // radians
+    sat_pos1(0) = cos(wt) * sat_pos1(0) + sin(wt) * sat_pos1(1);
+    sat_pos1(1) = -sin(wt) * sat_pos1(0) + cos(wt) * sat_pos1(1);
+    sat_pos1(2) = sat_pos1(2);
     Vector3d I1 = sat_pos1- station_pos;
     I1.normalize();
 
@@ -230,6 +246,16 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
 
         Vector3d I2;
         Vector3d sat_pos2 = obs2.sat_pos;
+
+        //update sat pos
+        double rho = distance(sat_pos2, station_pos);
+        double tx = rho / C_MPS;
+        // correct for earth rotation
+        double wt = earth_angle_velocity() * tx; // radians
+        sat_pos2(0) = cos(wt) * sat_pos2(0) + sin(wt) * sat_pos2(1);
+        sat_pos2(1) = -sin(wt) * sat_pos2(0) + cos(wt) * sat_pos2(1);
+        sat_pos2(2) = sat_pos2(2);
+
         I2 = sat_pos2 - station_pos;
         I2.normalize();
 
@@ -237,7 +263,7 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
         H(2 * i, 3 + i) = L1_WAVELENGTH_GPS;
         H.block(2 * i + 1, 0, 1, 3) = -(I1 - I2).transpose();
     }
-    cout << "H: " << H << endl;
+    //cout << "H: " << H << endl;
     cout << "y: " << y.transpose() << endl;
     //least square solver without weight
     // VectorXd x1 = H.bdcSvd(ComputeThinU | ComputeThinV).solve(y);
@@ -248,14 +274,14 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
     VectorXd res = y - H * x;
     cout << "x: " << x.transpose() << endl;
     cout << "res " << res.transpose() << endl;
-    cout << "x_real: " << (x_rcv - x_station).transpose() << endl;
-    VectorXd N_ab = VectorXd::Zero(n-1);
-    VectorXd dN = (N_rcv - N_station);
-    for (int i = 0; i < (n - 1); i++)
-    {
-        N_ab(i) = dN(i + 1) - dN(0);
-    }
-    cout << "N_ab: " << N_ab.transpose() << endl;
+    // cout << "x_real: " << (x_rcv - x_station).transpose() << endl;
+    // VectorXd N_ab = VectorXd::Zero(n-1);
+    // VectorXd dN = (N_rcv - N_station);
+    // for (int i = 0; i < (n - 1); i++)
+    // {
+    //     N_ab(i) = dN(i + 1) - dN(0);
+    // }
+    // cout << "N_ab: " << N_ab.transpose() << endl;
 
     if (res.norm() / (2 * n) > 10.0)
     {
