@@ -233,9 +233,9 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
         I2 = sat_pos2 - station_pos;
         I2.normalize();
 
-        H.block(2 * i, 0, 1, 3) = (I1 - I2).transpose();
+        H.block(2 * i, 0, 1, 3) = -(I1 - I2).transpose();
         H(2 * i, 3 + i) = L1_WAVELENGTH_GPS;
-        H.block(2 * i + 1, 0, 1, 3) = (I1 - I2).transpose();
+        H.block(2 * i + 1, 0, 1, 3) = -(I1 - I2).transpose();
     }
     cout << "H: " << H << endl;
     cout << "y: " << y.transpose() << endl;
@@ -334,11 +334,9 @@ void single_diff_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
         I = sat_pos - station_pos;//!!!important
         I.normalize();
 
-        // H.block(2 * i, 0, 1, 3) = I.transpose();
-        // H(2 * i, 4 + i) = L1_WAVELENGTH_GPS;
-
         H.block(2 * i, 0, 1, 3) = -I.transpose();
-        H(2 * i, 3) = 1;
+        H(2 * i, 4 + i) = L1_WAVELENGTH_GPS;
+
         //pseudorange
         H.block(2 * i + 1, 0, 1, 3) = -I.transpose();
         H(2 * i + 1, 3) = 1;
