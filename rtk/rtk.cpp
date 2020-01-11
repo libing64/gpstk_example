@@ -323,7 +323,7 @@ void single_diff_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
     for (int i = 0; i < n; i++)
     {
         rtk_obs_t obs = rtk_obs[i];
-        double sd_c = (obs.C1 - obs.C2); //single difference
+        double sd_c = (obs.P1 - obs.P2);//(obs.C1 - obs.C2); //single difference
         double sd_p = (obs.P1 - obs.P2); //single difference
 
         y(2 * i) = sd_c;
@@ -331,14 +331,16 @@ void single_diff_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
 
         Vector3d I;
         Vector3d sat_pos = obs.sat_pos;
-        I = sat_pos - station_pos;
+        I = sat_pos - station_pos;//!!!important
         I.normalize();
 
-        H.block(2 * i, 0, 1, 3) = I.transpose();
-        H(2 * i, 4 + i) = L1_WAVELENGTH_GPS;
+        // H.block(2 * i, 0, 1, 3) = I.transpose();
+        // H(2 * i, 4 + i) = L1_WAVELENGTH_GPS;
 
+        H.block(2 * i, 0, 1, 3) = -I.transpose();
+        H(2 * i, 3) = 1;
         //pseudorange
-        H.block(2 * i + 1, 0, 1, 3) = I.transpose();
+        H.block(2 * i + 1, 0, 1, 3) = -I.transpose();
         H(2 * i + 1, 3) = 1;
     }
     cout << "H: " << H << endl;
