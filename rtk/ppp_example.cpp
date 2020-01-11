@@ -83,16 +83,15 @@ int main(int argc, char *argv[])
     // observation types we are interested in. Given that old-style
     // observation types are used, GPS is assumed.
     int indexP1 = roh.getObsIndex("C1C");
-    cout << "indexP1: " << indexP1 << endl;
     int indexP2 = roh.getObsIndex("C2W");
+    int indexC1 = roh.getObsIndex("L1C");
 
-    cout << "indexP2: " << indexP2 << endl;
     // Let's process all lines of observation data, one by one
     while (roffs >> rod)
     {
         if (rod.epochFlag == 0 || rod.epochFlag == 1) // Begin usable data
         {
-            vector<pvt_obs_t> pvt_obs_q;
+            vector<ppp_obs_t> ppp_obs_q;
 
             // Define the "it" iterator to visit the observations PRN map.
             // Rinex3ObsData::DataMap is a map from RinexSatID to
@@ -104,9 +103,9 @@ int main(int argc, char *argv[])
             // pseudoranges for the current epoch. They are correspondly fed
             // into "prnVec" and "rangeVec"; "obs" is a public attribute of
             // Rinex3ObsData to get the map of observations
-            double P1(0.0), P2(0.0);
+            double P1(0.0), P2(0.0), C1(0.0);
             RinexSatID prn;
-            pvt_obs_t pvt_obs;
+            ppp_obs_t ppp_obs;
             for (it = rod.obs.begin(); it != rod.obs.end(); it++)
             {
                 // The RINEX file may have P1 observations, but the current
@@ -116,6 +115,7 @@ int main(int argc, char *argv[])
                     prn = it->first;
                     P1 = rod.getObs(it->first, indexP1).data;
                     P2 = rod.getObs(it->first, indexP2).data;
+                    C1 = rod.getObs(it->first, indexC1).data;
                     double ionocorr = 1.0 / (1.0 - gamma) * (P1 - P2);
 
                     //compute sat pos, takc care of clock bias
@@ -125,12 +125,13 @@ int main(int argc, char *argv[])
                     cout << "satellite clock bias: " << sat_xvt.clkbias * C_MPS << endl;
                     cout << "satellite clock drift: " << sat_xvt.clkdrift << endl;
 
-                    pvt_obs.P = P1 - ionocorr + sat_xvt.clkbias * C_MPS;
+                    ppp_obs.P = P1 - ionocorr + sat_xvt.clkbias * C_MPS;
+                    ppp_obs.C = C1;
                     Triple sat_pos = sat_xvt.getPos();
-                    pvt_obs.sat_pos(0) = sat_pos[0];
-                    pvt_obs.sat_pos(1) = sat_pos[1];
-                    pvt_obs.sat_pos(2) = sat_pos[2];
-                    pvt_obs_q.push_back(pvt_obs);
+                    ppp_obs.sat_pos(0) = sat_pos[0];
+                    ppp_obs.sat_pos(1) = sat_pos[1];
+                    ppp_obs.sat_pos(2) = sat_pos[2];
+                    ppp_obs_q.push_back(ppp_obs);
                 }
                 catch (...)
                 {
@@ -139,7 +140,7 @@ int main(int argc, char *argv[])
             }
             Vector4d solution;
             VectorXd residual;
-            pvt_solver(pvt_obs_q, solution, residual);
+            pvt_solver(ppp_obs_q, solution, residual);
             cout << "=================" << endl;
             cout << "solution: " << solution.transpose() << endl;
             cout << "residual: " << residual.transpose() << endl;

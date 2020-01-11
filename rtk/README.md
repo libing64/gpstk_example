@@ -45,3 +45,5 @@ err: 66905.365
 # P PG矩阵是干嘛的?
 
 # PVT估计误差很大的原因是没有补偿clock bias
+
+# rtk solver 使用仿真数据，不加任何noise，误差依然很大 应该是有bug？

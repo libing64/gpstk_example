@@ -27,7 +27,7 @@ using namespace gpstk;
 // } rtk_obs_t;
 
 //vector<rtk_obs_t> &rtk_obs, Vector3d station_pos
-void generate_data(vector<rtk_obs_t> &rtk_obs, VectorXd &x_rcv, VectorXd x_station)
+void generate_data(vector<rtk_obs_t> &rtk_obs, VectorXd &x_rcv, VectorXd& x_station)
 {
     x_rcv = VectorXd::Random(4) * 100000;//x and dt
     x_station = x_rcv + VectorXd::Random(4) * 2000; //x and dt
@@ -173,6 +173,8 @@ void rtk_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
 {
     VectorXd x_rcv, x_station;
     generate_data(rtk_obs, x_rcv, x_station);
+    cout << "x_rcv: " << x_rcv.transpose() << endl;
+    cout << "x_station: " << x_station.transpose() << endl;
     station_pos = x_station.segment(0, 3);
     int n = rtk_obs.size();
     cout << "rtk solver: " << n << endl;
