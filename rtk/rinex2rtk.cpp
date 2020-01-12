@@ -217,7 +217,8 @@ int main(int argc, char *argv[])
             //solve relative pos
             Vector3d station_pos = station_solution.segment(0, 3);
             //rtk_solver(rtk_obs_q, station_pos);
-            single_diff_solver(rtk_obs_q, station_pos);
+            //single_diff_solver(rtk_obs_q, station_pos);
+            double_diff_solver(rtk_obs_q, station_pos);
         }
 
         

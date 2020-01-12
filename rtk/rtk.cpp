@@ -178,6 +178,32 @@ void covariance_matrix_sd(int n, MatrixXd &Q, MatrixXd &W)
     //cout << "W " << W << endl;
 }
 
+void covariance_matrix_dd(int n, MatrixXd &H_dd, MatrixXd &Q_dd, MatrixXd &W_dd)
+{
+    const double Pcov = 1.0;
+    Eigen::MatrixXd Q = MatrixXd::Zero(n, n); //covariance matrix of raw gps measurement
+    for (int i = 0; i < n; i++)
+    {
+        Q(i, i) = Pcov; //covariance of Pseudorange measurement
+    }
+    //cout << "line: " << __LINE__ << endl;
+    //compute cov of difference
+    H_dd = MatrixXd::Zero(n-1, n);
+    for (int i = 0; i < (n - 1); i++)
+    {
+        H_dd(i, 0) = 1;
+        H_dd(i, i + 1) = -1;
+    }
+    //cout << "line: " << __LINE__ << endl;
+    Q_dd = H_dd * Q * H_dd.transpose();
+    // cout << "Q: " << Q << endl;
+    // cout << "H_dd: " << H_dd << endl;
+    // cout << "Q_dd: " << Q_dd << endl;
+    //cout << "line: " << __LINE__ << endl;
+    W_dd = Q_dd.inverse();
+    //cout << "W_dd " << W_dd << endl;
+}
+
 void correct_satpos(Triple &sat_pos, Vector3d rcv_pos)
 {
     Vector3d pos;
@@ -434,4 +460,64 @@ void dgps_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos, Vector4d &sol
     }
     solution = x;
     residual = y;
+}
+
+//双差方式求解
+void double_diff_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
+{
+    VectorXd x_rcv, x_station;
+    VectorXd N_rcv, N_station;
+    // generate_data(rtk_obs, x_rcv, x_station, N_rcv, N_station);
+    // cout << "x_rcv: " << x_rcv.transpose() << endl;
+    // cout << "x_station: " << x_station.transpose() << endl;
+    // station_pos = x_station.segment(0, 3);
+
+    int n = rtk_obs.size();
+    cout << "rtk solver: " << n << endl;
+    int rows = n - 1; //all the measurements converted to double difference
+    int cols = 3; //all the variables to be solved, dx, dy, dz dt, and n ambiguity resolution
+    MatrixXd H = MatrixXd::Zero(rows, cols);
+    VectorXd y = VectorXd::Zero(rows);
+
+    MatrixXd H_dd, W_dd, Q_dd;
+    covariance_matrix_dd(n, H_dd, Q_dd, W_dd);
+
+    if (rtk_obs.size() <= 4)
+    {
+        cerr << "no enough observation for rtk solver" << endl;
+    }
+    rtk_obs_t obs1 = rtk_obs[0];
+    Vector3d sat_pos1 = obs1.sat_pos;
+    Vector3d I1 = sat_pos1 - station_pos;
+    I1.normalize();
+
+    for (int i = 0; i < (n-1); i++)
+    {
+        rtk_obs_t obs2 = rtk_obs[i];
+        double dd_p = (obs1.P1 - obs1.P2) - (obs2.P1 - obs2.P2);
+
+        y(i) = dd_p;
+
+        Vector3d I2;
+        Vector3d sat_pos2 = obs2.sat_pos;
+        I2 = sat_pos2 - station_pos;
+        I2.normalize();
+
+        //pseudorange
+        H.block(i, 0, 1, 3) = -(I1 - I2).transpose();
+    }
+    //cout << "H: " << H << endl;
+    cout << "y: " << y.transpose() << endl;
+    //least square solver without weight
+    // VectorXd x1 = H.bdcSvd(ComputeThinU | ComputeThinV).solve(y);
+    // cout << "x1: " << x1.transpose() << endl;
+    MatrixXd Ht = H.transpose();
+    //VectorXd x = (Ht * W_dd * H).inverse() * Ht * W_dd * y;
+    VectorXd x = (Ht * W_dd * H).ldlt().solve(Ht * W_dd * y);
+    VectorXd res = y - H * x;
+    cout << "x: " << x.transpose() << endl;
+    cout << "res " << res.transpose() << endl;
+    // cout << "x_real: " << (x_rcv - x_station).transpose() << endl;
+    // VectorXd dN = (N_rcv - N_station);
+    // cout <<  "dN:  " << dN.transpose() << endl;
 }

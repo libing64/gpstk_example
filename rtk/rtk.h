@@ -24,6 +24,6 @@ typedef struct
 
 void rtk_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos);
 void single_diff_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos);
-
+void double_diff_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos);
 void dgps_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos, Vector4d &solution, VectorXd &residual);
 #endif
