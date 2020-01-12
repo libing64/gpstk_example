@@ -167,7 +167,7 @@ void covariance_matrix(int n, MatrixXd &H_dd, MatrixXd &Q_dd, MatrixXd &W_dd)
 void covariance_matrix_sd(int n, MatrixXd &Q, MatrixXd &W)
 {
     const double Pcov = 1.0;
-    const double Ccov = 0.01;
+    const double Ccov = 1.0;
     Q = MatrixXd::Zero(2 * n, 2 * n); //covariance matrix of raw gps measurement
     for (int i = 0; i < n; i++)
     {
@@ -175,7 +175,7 @@ void covariance_matrix_sd(int n, MatrixXd &Q, MatrixXd &W)
         Q(2 * i + 1, 2 * i + 1) = Pcov; //covariance of Pseudorange measurement
     }
     W = Q.inverse();
-    cout << "W " << W << endl;
+    //cout << "W " << W << endl;
 }
 
 void correct_satpos(Triple &sat_pos, Vector3d rcv_pos)
@@ -327,10 +327,11 @@ void single_diff_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
 {
     VectorXd x_rcv, x_station;
     VectorXd N_rcv, N_station;
-    generate_data(rtk_obs, x_rcv, x_station, N_rcv, N_station);
-    cout << "x_rcv: " << x_rcv.transpose() << endl;
-    cout << "x_station: " << x_station.transpose() << endl;
-    station_pos = x_station.segment(0, 3);
+    // generate_data(rtk_obs, x_rcv, x_station, N_rcv, N_station);
+    // cout << "x_rcv: " << x_rcv.transpose() << endl;
+    // cout << "x_station: " << x_station.transpose() << endl;
+    // station_pos = x_station.segment(0, 3);
+
     int n = rtk_obs.size();
     cout << "rtk solver: " << n << endl;
     int rows = 2 * n; //all the measurements converted to double difference
@@ -357,6 +358,9 @@ void single_diff_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
 
         Vector3d I;
         Vector3d sat_pos = obs.sat_pos;
+        //correct sat pos
+
+
         I = sat_pos - station_pos;//!!!important
         I.normalize();
 
@@ -367,7 +371,7 @@ void single_diff_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
         H.block(2 * i + 1, 0, 1, 3) = -I.transpose();
         H(2 * i + 1, 3) = 1;
     }
-    cout << "H: " << H << endl;
+    //cout << "H: " << H << endl;
     cout << "y: " << y.transpose() << endl;
     //least square solver without weight
     // VectorXd x1 = H.bdcSvd(ComputeThinU | ComputeThinV).solve(y);
@@ -378,7 +382,56 @@ void single_diff_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos)
     VectorXd res = y - H * x;
     cout << "x: " << x.transpose() << endl;
     cout << "res " << res.transpose() << endl;
-    cout << "x_real: " << (x_rcv - x_station).transpose() << endl;
-    VectorXd dN = (N_rcv - N_station);
-    cout <<  "dN:  " << dN.transpose() << endl;
+    // cout << "x_real: " << (x_rcv - x_station).transpose() << endl;
+    // VectorXd dN = (N_rcv - N_station);
+    // cout <<  "dN:  " << dN.transpose() << endl;
+}
+
+//单差方式求解
+void dgps_solver(vector<rtk_obs_t> &rtk_obs, Vector3d station_pos, Vector4d &solution, VectorXd &residual)
+{
+    VectorXd x = Vector4d::Zero(4);
+    //const double C_MPS = 2.99792458e8;
+    //VectorXd x = Vector4d(-3978242.4348, 3382841.1715, 3649902.7667, 0);
+    //genetate_data(pvt_obs, x);
+    //cout << "xx2: " << x.transpose() << endl;
+    x = Vector4d::Zero(4);
+    int n = rtk_obs.size();
+
+    double err = 1e8;
+    int cnt = 0;
+    VectorXd y = VectorXd::Zero(n);
+    MatrixXd H = MatrixXd::Zero(n, 4);
+    MatrixXd W = MatrixXd::Zero(n, n);
+    while (err > 0.01 && cnt < 20)
+    {
+        for (int i = 0; i < n; i++)
+        {
+            rtk_obs_t obs = rtk_obs[i];
+            Vector3d sat_pos = obs.sat_pos;
+            double P = obs.P1 - obs.P2;
+            double rho = distance(sat_pos, x.segment(0, 3)) - distance(sat_pos, station_pos);
+            y(i) = P - rho - x(3);
+
+            Vector3d I = x.segment(0, 3) - sat_pos;
+            I.normalize();
+            H.block(i, 0, 1, 3) = I.transpose();
+            H(i, 3) = 1.0;
+            //cout << "P: " << P << "  rho : " << rho  << "  y: " << y(i)  << "  weight: " << W(i, i) << " elev angle: " << elev_angle << endl;
+        }
+        MatrixXd HH = H.transpose() * H;
+        VectorXd dx = HH.ldlt().solve(H.transpose() * y);
+        //cout << "H: " << H << endl;
+        // cout << "y: " << y.transpose() << endl;
+        // cout << "dx: " << dx.transpose() << endl;
+        // cout << "H * dx: " << (H*dx).transpose() << endl;
+        x += dx;
+        err = dx.norm();
+        cnt++;
+        // cout << "x: " << x.transpose() << endl;
+        // cout << "err: " << err << endl;
+        // cout << "===============================" << endl;
+    }
+    solution = x;
+    residual = y;
 }

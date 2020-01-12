@@ -182,8 +182,8 @@ int main(int argc, char *argv[])
                         Triple sat_pos = sat_xvt.getPos();
 
 
-                        rtk_obs.P1 = P1 - ionocorr + sat_xvt.clkbias * C_MPS;
-                        rtk_obs.P2 = P1_station - ionocorr + sat_xvt.clkbias * C_MPS;
+                        rtk_obs.P1 = P1;
+                        rtk_obs.P2 = P1_station;
                         rtk_obs.C1 = C1;
                         rtk_obs.C2 = C1_station;
                         rtk_obs.sat_pos(0) = sat_pos[0];
@@ -217,7 +217,14 @@ int main(int argc, char *argv[])
             //solve relative pos
             Vector3d station_pos = station_solution.segment(0, 3);
             //rtk_solver(rtk_obs_q, station_pos);
-            single_diff_solver(rtk_obs_q, station_pos);
+
+            Vector4d solution;
+            VectorXd res;
+            dgps_solver(rtk_obs_q, station_pos, solution, res);
+            cout << "=================" << endl;
+            cout << "dgps solution: " << solution.transpose() << endl;
+            cout << "residual: " << res.transpose() << endl;
+            cout << "=================" << endl;
         }
 
         
